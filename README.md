@@ -1,6 +1,6 @@
-# techare
+# techare_application_comp3003
 
-COMP3003 Techare project
+A new Flutter project.
 
 ## Getting Started
 
