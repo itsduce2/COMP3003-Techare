@@ -21,7 +21,7 @@ class _DashboardState extends State<Dashboard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             
-            // Header container
+            // Header
             Container(
               color: Colors.white,
               padding: const EdgeInsets.all(24.0), // Padding
@@ -62,7 +62,7 @@ class _DashboardState extends State<Dashboard> {
          
             const SizedBox(height: 24),
 
-            // Device & Device Health
+            // Device Health & info
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
@@ -75,13 +75,13 @@ class _DashboardState extends State<Dashboard> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
              
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     color: Colors.grey.withOpacity(0.25),
+                      //     blurRadius: 10,
+                      //     offset: const Offset(0, 4),
+                      //   ),
+                      // ],
                     ),
                     child: Row(
                       children: [
@@ -112,7 +112,7 @@ class _DashboardState extends State<Dashboard> {
                   Container(
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      color: Colors.orange[50], // Orange background
+                      color: Colors.orange[50],
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -136,9 +136,146 @@ class _DashboardState extends State<Dashboard> {
                     ),
                   ),
 
+                  const SizedBox(height: 16), // Spacing before metrics
+
+                  // Metrics section
+                  Row(
+                    children: [
+                      
+                      // Battery
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: const [
+                              Text('Battery', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                              SizedBox(height: 12),
+                              Icon(Icons.battery_charging_full, size: 32, color: Colors.orange),
+                              SizedBox(height: 12),
+                              Text('Health:', style: TextStyle(fontSize: 12)),
+                              Text('70% [degraded]', style: TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Padding
+                      const SizedBox(width: 12),
+
+                      // Storage 
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+
+
+                          child: Column(
+                            children: const [
+                              Text('Storage', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                              SizedBox(height: 12),
+                              Icon(Icons.pie_chart, size: 32, color: Colors.deepPurple),
+                              SizedBox(height: 12),
+                              Text('88% Used', style: TextStyle(fontSize: 14)),
+                              Text('Warning: Low space', style: TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),
+                      
+                              
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // padding
+                      const SizedBox(width: 12), 
+
+                      // Temperature 
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: const [
+                              Text('Temperature', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              SizedBox(height: 12),
+                              Icon(Icons.thermostat, size: 32, color: Colors.black87),
+                              SizedBox(height: 12),
+                              Text('Normal:', style: TextStyle(fontSize: 12)),
+                              Text('32°C', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    ],
+                  ),
+
+                  const SizedBox(height: 32), // Space before button
+
+                  // Run diagnostic button
+                  SizedBox(
+                    width: double.infinity, // full width
+                    height: 56, // button height
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // diagnostic action
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurpleAccent, // bright purple
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Run Diagnostic',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24), // Space at the very bottom
+
                 ],
               ),
             ),
+
+            
 
 
           ],
