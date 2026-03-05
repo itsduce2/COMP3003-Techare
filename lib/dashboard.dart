@@ -1,23 +1,56 @@
 import 'package:flutter/material.dart';
 
 class Dashboard extends StatefulWidget {
-  const Dashboard({Key? key}) : super(key: key);
+  const Dashboard({super.key});
 
   @override
   State<Dashboard> createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       // background color.
       backgroundColor: Colors.blueGrey[50],
       
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: Colors.deepPurple,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.health_and_safety),
+            label: 'Diagnostics',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.handyman_rounded), 
+            label: 'Repair',),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
+      ),
+      
       body: SafeArea(
         //SafeArea
-        child: Column(
-          // vertical column layout
+        child: SingleChildScrollView(
+          child: Column(
+            // vertical column layout
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             
@@ -136,7 +169,8 @@ class _DashboardState extends State<Dashboard> {
                     ),
                   ),
 
-                  const SizedBox(height: 16), // Spacing before metrics
+                  // padding
+                  const SizedBox(height: 16),
 
                   // Metrics section
                   Row(
@@ -152,7 +186,7 @@ class _DashboardState extends State<Dashboard> {
 
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.25),
+                                color: Colors.grey.withValues(alpha: 0.25),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -184,7 +218,7 @@ class _DashboardState extends State<Dashboard> {
 
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.25),
+                                color: Colors.grey.withValues(alpha: 0.25),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -220,7 +254,7 @@ class _DashboardState extends State<Dashboard> {
 
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.25),
+                                color: Colors.grey.withValues(alpha: 0.25),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -242,18 +276,19 @@ class _DashboardState extends State<Dashboard> {
                     ],
                   ),
 
-                  const SizedBox(height: 32), // Space before button
+                  // padding
+                  const SizedBox(height: 32), 
 
                   // Run diagnostic button
                   SizedBox(
-                    width: double.infinity, // full width
-                    height: 56, // button height
+                    width: double.infinity, // .infinity for full width
+                    height: 56, 
                     child: ElevatedButton(
                       onPressed: () {
-                        // diagnostic action
+                        //placeholder for diagnostic
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurpleAccent, // bright purple
+                        backgroundColor: Colors.deepPurpleAccent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -269,7 +304,135 @@ class _DashboardState extends State<Dashboard> {
                     ),
                   ),
                   
-                  const SizedBox(height: 24), // Space at the very bottom
+                  //padding
+                  const SizedBox(height: 24), 
+
+                  // Recent diagnostic card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text('Recent Diagnostic', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            Text('(Last Scan xx/xx/xx)', style: TextStyle(fontSize: 14, color: Colors.black54)),
+                          ],
+                        ),
+                        InkWell(
+                          onTap: () {
+                            // not implemented yet
+                          },
+                          child: const Text('View Results', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.w500)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  //padding
+                  const SizedBox(height: 16), 
+
+                  // Top row of 4x4 grid
+                  Row(
+                    children: [
+                      // Maintenance alerts 
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                          child: Row(
+                            children: const [
+                              Icon(Icons.notifications_active_outlined, color: Colors.deepPurple, size: 28),
+                              SizedBox(width: 12),
+                              Expanded(child: Text('Maintenance\nAlerts', style: TextStyle(fontSize: 14))),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Repair tutorials 
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                          child: Row(
+                            children: const [
+                              Icon(Icons.menu_book, color: Colors.deepPurple, size: 28),
+                              SizedBox(width: 12),
+                              Expanded(child: Text('Repair\nTutorials', style: TextStyle(fontSize: 14))),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 12), // gap between grid rows
+                  
+                  // Bottom row (4x4 grid)
+                  Row(
+                    children: [
+                      // Resources 
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                          child: Row(
+                            children: const [
+                              Icon(Icons.inventory_2_outlined, color: Colors.deepPurple, size: 28),
+                              SizedBox(width: 12),
+                              Expanded(child: Text('Resources', style: TextStyle(fontSize: 14))),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Privacy & data
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                          child: Row(
+                            children: const [
+                              Icon(Icons.shield_outlined, color: Colors.deepPurple, size: 28),
+                              SizedBox(width: 12),
+                              Expanded(child: Text('Privacy\n& Data', style: TextStyle(fontSize: 14))),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  //padding
+                  const SizedBox(height: 16), 
+
+                  // Tips
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Tips for your device', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        SizedBox(height: 8),
+                        Text('Storage is high; consider clearing large files', style: TextStyle(fontSize: 14, color: Colors.black87)),
+                      ],
+                    ),
+                  ),
+                  
+                  //padding
+                  const SizedBox(height: 40),
 
                 ],
               ),
@@ -282,6 +445,7 @@ class _DashboardState extends State<Dashboard> {
           
         ),
       ),
+    ),
     ); 
   }
 }
