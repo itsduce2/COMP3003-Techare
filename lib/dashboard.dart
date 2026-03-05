@@ -387,7 +387,7 @@ class _DashboardState extends State<Dashboard> {
                             children: const [
                               Icon(Icons.inventory_2_outlined, color: Colors.deepPurple, size: 28),
                               SizedBox(width: 12),
-                              Expanded(child: Text('Resources', style: TextStyle(fontSize: 14))),
+                              Expanded(child: Text('Resources\n', style: TextStyle(fontSize: 14))),
                             ],
                           ),
                         ),
