@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
 
- @override
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       // background colour
@@ -57,21 +62,20 @@ class SettingsScreen extends StatelessWidget {
             ),
 
               //padding
-              const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
               // Account & Privacy section
-              Padding(
+            Padding(
                 
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
 
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300), 
-                  ),
-                
-
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                   border: Border.all(color: Colors.grey.shade300), 
+                ),
+              
                 child: Column(
                   children:[
                     ListTile(
@@ -94,11 +98,53 @@ class SettingsScreen extends StatelessWidget {
                         // placeholder
                       },
                     ),
-                    ],
+                  ],
                 ),
+                
+              
+
               ),
             ),
 
+              //padding
+              const SizedBox(height: 24),
+
+              // Notifications section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300), 
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: const Text('Push Notifications', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      trailing: Switch(
+                        value: true, 
+                        onChanged: (bool value) {},
+                        activeThumbColor: Colors.deepPurple,
+                      ),
+                      onTap: () {
+                        // Placeholder
+                      },
+                    ),
+                    const Divider(height: 1, color: Colors.black12), 
+                    ListTile(
+                      title: const Text('Manage Notifications', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      subtitle: const Text('Default Settings', style: TextStyle(fontSize: 14, color: Colors.black54)),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                      onTap: () {
+                        // Placeholder
+                      },
+                    ),
+                    
+                  ],
+                ),
+              ),
+            ),  
           ],
         ),
       ),
