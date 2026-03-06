@@ -22,30 +22,6 @@ class _DashboardState extends State<Dashboard> {
       // background color.
       backgroundColor: Colors.blueGrey[50],
       
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.health_and_safety),
-            label: 'Diagnostics',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.handyman_rounded), 
-            label: 'Repair',),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-      ),
-      
       body: SafeArea(
         //SafeArea
         child: SingleChildScrollView(
