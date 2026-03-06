@@ -12,10 +12,10 @@ class BottomNavigation extends StatefulWidget {
 }
 
 class _BottomNavigationState extends State<BottomNavigation> {
-  // Index of currently selected navigation tab
+  // Index of currently selected
   int _selectedIndex = 0;
 
-  // List of screens to display based on navigation selection
+  // List of screens 
   final List<Widget> _screens = const [
     Dashboard(),
     DiagnosticsScreen(),
@@ -25,22 +25,17 @@ class _BottomNavigationState extends State<BottomNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    // Main layout container with body and bottom navigation
     return Scaffold(
-      // Display the selected screen based on current index
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
       ),
 
-      // Bottom navigation bar for switching between screens
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        // Update selected index when a tab is tapped
         onTap: (index) => setState(() => _selectedIndex = index),
        
-        // Colors for selected and unselected navigation items
         selectedItemColor: Colors.deepPurple,
         unselectedItemColor: Colors.grey,
         
