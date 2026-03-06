@@ -107,10 +107,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
 
-              //padding
-              const SizedBox(height: 24),
+            //padding
+            const SizedBox(height: 24),
 
-              // Notifications section
+            // Notifications section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Container(
