@@ -212,7 +212,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                       ),
                       child: Column(
                         children: const [
-                          Icon(Icons.refresh, color: Colors.grey, size: 48),
+                          Icon(Icons.history, color: Colors.grey, size: 48),
                           SizedBox(height: 16),
                           Text(
                             'No previous scans',
