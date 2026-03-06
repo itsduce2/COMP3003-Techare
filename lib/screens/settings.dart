@@ -8,6 +8,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  bool _notificationsEnabled = true;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,8 +124,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ListTile(
                       title: const Text('Push Notifications', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       trailing: Switch(
-                        value: true, 
-                        onChanged: (bool value) {},
+                        value: _notificationsEnabled,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _notificationsEnabled = value;
+                          });
+                        },
                         activeThumbColor: Colors.deepPurple,
                       ),
                       onTap: () {
