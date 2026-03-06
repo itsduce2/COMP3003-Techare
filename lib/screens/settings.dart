@@ -59,6 +59,32 @@ class SettingsScreen extends StatelessWidget {
               //padding
               const SizedBox(height: 24),
 
+              // Account & Privacy section
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300), 
+                ),
+
+                child: Column(
+                  children: const [
+                    ListTile(
+                      title: Text('Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      subtitle: Text('Name, Email, Password', style: TextStyle(fontSize: 14, color: Colors.black54)),
+                      trailing: Icon(Icons.chevron_right, color: Colors.grey),
+                    ),
+                    
+                    Divider(height: 1, color: Colors.black12),
+
+                    ListTile(
+                      title: Text('Privacy Settings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      subtitle: Text('Data and tracking', style: TextStyle(fontSize: 14, color: Colors.black54)),
+                      trailing: Icon(Icons.chevron_right, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
 
             ],
           ),
