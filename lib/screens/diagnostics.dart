@@ -200,8 +200,32 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                     
                     //padding
                     const SizedBox(height: 12),
-                    
 
+                    // Placeholder for results
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Column(
+                        children: const [
+                          Icon(Icons.refresh, color: Colors.grey, size: 48),
+                          SizedBox(height: 16),
+                          Text(
+                            'No previous scans',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+                          ),
+                          SizedBox(height: 4)
+                        ],
+                      ),
+                    ),
+
+                    //padding
+                    const SizedBox(height: 40),
+                  
                   ],
                 ),
               ),
