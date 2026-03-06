@@ -60,12 +60,16 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Account & Privacy section
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300), 
-                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300), 
+                  ),
+                
 
                 child: Column(
                   children: const [
@@ -74,7 +78,7 @@ class SettingsScreen extends StatelessWidget {
                       subtitle: Text('Name, Email, Password', style: TextStyle(fontSize: 14, color: Colors.black54)),
                       trailing: Icon(Icons.chevron_right, color: Colors.grey),
                     ),
-                    
+
                     Divider(height: 1, color: Colors.black12),
 
                     ListTile(
@@ -82,14 +86,15 @@ class SettingsScreen extends StatelessWidget {
                       subtitle: Text('Data and tracking', style: TextStyle(fontSize: 14, color: Colors.black54)),
                       trailing: Icon(Icons.chevron_right, color: Colors.grey),
                     ),
-                  ],
+                    ],
                 ),
               ),
+            ),
 
-            ],
-          ),
+          ],
         ),
       ),
-    );
+    ),
+  );
   }
 }
