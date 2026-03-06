@@ -225,7 +225,6 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
                     //padding
                     const SizedBox(height: 40),
-                  
                   ],
                 ),
               ),
