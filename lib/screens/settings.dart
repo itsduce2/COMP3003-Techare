@@ -61,8 +61,9 @@ class SettingsScreen extends StatelessWidget {
 
               // Account & Privacy section
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -72,11 +73,15 @@ class SettingsScreen extends StatelessWidget {
                 
 
                 child: Column(
-                  children: const [
+                  children:[
                     ListTile(
                       title: Text('Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       subtitle: Text('Name, Email, Password', style: TextStyle(fontSize: 14, color: Colors.black54)),
                       trailing: Icon(Icons.chevron_right, color: Colors.grey),
+                      onTap: () {
+                        // placeholder
+                      },
+                      
                     ),
 
                     Divider(height: 1, color: Colors.black12),
@@ -85,6 +90,9 @@ class SettingsScreen extends StatelessWidget {
                       title: Text('Privacy Settings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       subtitle: Text('Data and tracking', style: TextStyle(fontSize: 14, color: Colors.black54)),
                       trailing: Icon(Icons.chevron_right, color: Colors.grey),
+                      onTap: () {
+                        // placeholder
+                      },
                     ),
                     ],
                 ),
