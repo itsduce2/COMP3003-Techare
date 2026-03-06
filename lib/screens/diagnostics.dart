@@ -60,7 +60,87 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                 ],
               ),
             ),
-          ],
+
+              //padding
+              const SizedBox(height: 24),
+
+              // Main content
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    
+                    // Device info
+                    Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+             
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     color: Colors.grey.withOpacity(0.25),
+                      //     blurRadius: 10,
+                      //     offset: const Offset(0, 4),
+                      //   ),
+                      // ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.smartphone, size: 40, color: Colors.grey),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Pixel 7',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              'Android 14',
+                              style: TextStyle(fontSize: 16, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                    //padding
+                    const SizedBox(height: 24),
+
+                    // AI prediction button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          //placeholder for AI feature
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.deepPurpleAccent, width: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Get AI Prediction',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurpleAccent),
+                        ),
+                      ),
+                    ),
+
+                    //padding
+                    const SizedBox(height: 32),
+
+                    // Recent results section
+                    const Text('Recent Results', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
