@@ -133,7 +133,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         activeThumbColor: Colors.deepPurple,
                       ),
                       onTap: () {
-                        // Placeholder
+                        setState(() {
+                          _notificationsEnabled = !_notificationsEnabled;
+                        });
                       },
                     ),
                     const Divider(height: 1, color: Colors.black12), 
