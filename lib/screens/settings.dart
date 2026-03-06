@@ -152,6 +152,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),  
+          
+             //padding
+              const SizedBox(height: 24),
+              
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Container(
+                decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300), 
+              ),
+              
+              child: Column(
+                children: [
+                  ListTile(
+                    title: const Text('Help', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                    onTap: () {
+                        // Placeholder
+                    },
+                  ),
+                      
+                  const Divider(height: 1, color: Colors.black12), 
+                    ListTile(
+                      title: const Text('Sign Out', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                      onTap: () {
+                          // Placeholder
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ),
+          
           ],
         ),
       ),
