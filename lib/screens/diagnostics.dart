@@ -136,6 +136,71 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
                     // Recent results section
                     const Text('Recent Results', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    
+                    //padding
+                    const SizedBox(height: 12),
+                    
+                    Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      //layout row
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text('November 9, 2025', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              SizedBox(height: 4),
+                              Text('Battery Health 70%; Low Storage', style: TextStyle(fontSize: 14, color: Colors.black87)),
+                            ],
+                          ),
+                          InkWell(
+                            onTap: () {
+                              // not implemented yet
+                            },
+                            child: const Text('View', style: TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600, fontSize: 16)),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    //padding
+                    const SizedBox(height: 24),
+
+                    // Run diagnostic button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: FilledButton(
+                        onPressed: () {
+                          //placeholder for diagnostic
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.deepPurpleAccent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Run Diagnostics',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ),
+                    ),
+
+                    //padding
+                    const SizedBox(height: 32),
+
+                    // Previous results section
+                    const Text('Previous Results', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    
+                    //padding
+                    const SizedBox(height: 12),
+                    
 
                   ],
                 ),
