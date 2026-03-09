@@ -12,7 +12,7 @@ class DeviceInfoService {
         AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
         return {
           'name': androidInfo.model,
-          'os': 'Android ${androidInfo.version.release}'
+          'os': androidInfo.version.release
         };
       } 
       
