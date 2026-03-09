@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../device_info_service.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -8,6 +9,26 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+
+  String _deviceName = 'Loading device info...';
+  String _deviceOS = 'Loading OS info...';
+
+  //calls service to get device info 
+  @override
+  void initState() {
+    super.initState();
+    _loadDeviceData();
+  }
+
+  // loads device data and updates state
+  Future<void> _loadDeviceData() async {
+    final data = await DeviceInfoService.getDeviceDetails();
+    setState(() {
+      _deviceName = data['name'] ?? 'Unknown';
+      _deviceOS = data['os'] ?? 'Unknown';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     
@@ -89,18 +110,20 @@ class _DashboardState extends State<Dashboard> {
                       children: [
                         const Icon(Icons.smartphone, size: 40, color: Colors.grey),
                         const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              'Pixel 7',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              'Android 14',
-                              style: TextStyle(fontSize: 16, color: Colors.grey),
-                            ),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _deviceName,
+                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                _deviceOS,
+                                style: const TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
