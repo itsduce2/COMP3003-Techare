@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../device_info_service.dart';
+import '../battery_service.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -13,11 +14,16 @@ class _DashboardState extends State<Dashboard> {
   String _deviceName = 'Loading device info...';
   String _deviceOS = 'Loading OS info...';
 
+  int _batteryLevel = 0;
+  String _batteryHealth = 'Loading...';
+  String _batteryTemperature = 'Loading...';
+
   //calls service to get device info 
   @override
   void initState() {
     super.initState();
     _loadDeviceData();
+    _loadBatteryData();
   }
 
   // loads device data and updates state
@@ -26,6 +32,16 @@ class _DashboardState extends State<Dashboard> {
     setState(() {
       _deviceName = data['name'] ?? 'Unknown';
       _deviceOS = data['os'] ?? 'Unknown';
+    });
+  }
+
+  // loads battery data and updates state
+  Future<void> _loadBatteryData() async {
+    final data = await BatteryService.getBatteryInfo();
+    setState(() {
+      _batteryLevel = data['level'] ?? 0;
+      _batteryHealth = data['health'] ?? 'Unknown';
+      _batteryTemperature = data['temperature'] ?? 'Unknown';
     });
   }
 
@@ -185,13 +201,13 @@ class _DashboardState extends State<Dashboard> {
                             ],
                           ),
                           child: Column(
-                            children: const [
+                            children: [
                               Text('Battery', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                               SizedBox(height: 12),
                               Icon(Icons.battery_charging_full, size: 32, color: Colors.orange),
                               SizedBox(height: 12),
-                              Text('Health:', style: TextStyle(fontSize: 12)),
-                              Text('70% [degraded]', style: TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),
+                              Text('Level: $_batteryLevel%', style: TextStyle(fontSize: 12)),
+                              Text('Health: $_batteryHealth', style: TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),
                             ],
                           ),
                         ),
@@ -253,14 +269,13 @@ class _DashboardState extends State<Dashboard> {
                             ],
                           ),
                           child: Column(
-                            children: const [
-                              Text('Temperature', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                              SizedBox(height: 12),
-                              Icon(Icons.thermostat, size: 32, color: Colors.black87),
-                              SizedBox(height: 12),
-                              Text('Normal:', style: TextStyle(fontSize: 12)),
-                              Text('32°C', style: TextStyle(fontSize: 12, color: Colors.black54)),
-                            ],
+                            children: [
+                              const Text('Temperature', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 12),
+                              const Icon(Icons.thermostat, size: 32, color: Colors.black87),
+                              const SizedBox(height: 12),
+                              const Text('Normal:', style: TextStyle(fontSize: 12)),
+                              Text('Temp: $_batteryTemperature', style: const TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),                            ],
                           ),
                         ),
                       ),
