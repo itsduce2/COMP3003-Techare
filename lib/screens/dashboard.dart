@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../device_info_service.dart';
 import '../battery_service.dart';
+import '../storage_service.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -11,12 +12,27 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
 
+  // Device info variables
   String _deviceName = 'Loading device info...';
   String _deviceOS = 'Loading OS info...';
-
+  
+  // Battery variables
   int _batteryLevel = 0;
   String _batteryHealth = 'Loading...';
   String _batteryTemperature = 'Loading...';
+
+  // Storage variables
+  double _storagePercent = 0.0;
+  String _storageText = 'Loading...';
+  bool _isLowSpace = false;
+
+  // Overall health variables
+  String _healthStatus = 'Loading...';
+  String _healthMessage = 'Loading...'; 
+  Color _statusColor = Colors.white;
+
+
+  
 
   //calls service to get device info 
   @override
@@ -24,6 +40,8 @@ class _DashboardState extends State<Dashboard> {
     super.initState();
     _loadDeviceData();
     _loadBatteryData();
+    _loadStorageData();
+    _initDashboard();
   }
 
   // loads device data and updates state
@@ -38,13 +56,50 @@ class _DashboardState extends State<Dashboard> {
   // loads battery data and updates state
   Future<void> _loadBatteryData() async {
     final data = await BatteryService.getBatteryInfo();
+
+    String healthString = data['health'] ?? 'Unknown';
+
     setState(() {
       _batteryLevel = data['level'] ?? 0;
-      _batteryHealth = data['health'] ?? 'Unknown';
       _batteryTemperature = data['temperature'] ?? 'Unknown';
+
+      if (healthString == 'unspecifiedfailure') {
+        _batteryHealth = 'Unspecified Failure';
+      } else if (healthString == 'overheat') {
+        _batteryHealth = 'Overheated';
+       }
+      
+      else {
+        _batteryHealth = healthString[0].toUpperCase() + healthString.substring(1).toLowerCase();
+      }      
     });
   }
 
+  // loads storage data and updates state
+  Future<void> _loadStorageData() async {
+      try {
+        final storage = await StorageService().getStorageDetails();
+        setState(() {
+          _storagePercent = storage.usageValue * 100;
+          _storageText = '${_storagePercent.toStringAsFixed(0)}% Used';
+          _isLowSpace = _storagePercent >= 95;        
+        });
+      } catch (e) {
+        debugPrint("Failed to get storage data: $e");
+      }
+    }
+  
+  // Init dashboard loading all data and calculating health after all are loaded
+  Future<void> _initDashboard() async {
+    await Future.wait([
+      _loadDeviceData(),
+      _loadBatteryData(),
+      _loadStorageData(),
+    ]);
+    _calculateOverallHealth();
+  }
+
+  // build method to draw the UI
   @override
   Widget build(BuildContext context) {
     
@@ -153,23 +208,28 @@ class _DashboardState extends State<Dashboard> {
                   Container(
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      color: Colors.orange[50],
+                      // Simple logic: if white (loading), use light orange, else use the status color
+                      color: _statusColor == Colors.white ? Colors.orange[50] : _statusColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.check_circle_outline, size: 40, color: Colors.orange),
+                        Icon(
+                          Icons.check_circle_outline, 
+                          size: 40, 
+                          color: _statusColor == Colors.white ? Colors.orange : _statusColor
+                        ),
                         const SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
-                              'Fair',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              _healthStatus, // Just a variable
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             Text(
-                              'Overall good health',
-                              style: TextStyle(fontSize: 16, color: Colors.black87),
+                              _healthMessage, // Just a variable
+                              style: const TextStyle(fontSize: 16, color: Colors.black87),
                             ),
                           ],
                         ),
@@ -203,11 +263,11 @@ class _DashboardState extends State<Dashboard> {
                           child: Column(
                             children: [
                               Text('Battery', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                              SizedBox(height: 12),
-                              Icon(Icons.battery_charging_full, size: 32, color: Colors.orange),
-                              SizedBox(height: 12),
+                              const SizedBox(height: 12),
+                              _batteryIcon(),
+                              const SizedBox(height: 12),
                               Text('Level: $_batteryLevel%', style: TextStyle(fontSize: 12)),
-                              Text('Health: $_batteryHealth', style: TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),
+                              Text('$_batteryHealth', style: TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),
                             ],
                           ),
                         ),
@@ -223,7 +283,6 @@ class _DashboardState extends State<Dashboard> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.grey.withValues(alpha: 0.25),
@@ -232,18 +291,18 @@ class _DashboardState extends State<Dashboard> {
                               ),
                             ],
                           ),
-
-
                           child: Column(
-                            children: const [
-                              Text('Storage', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                              SizedBox(height: 12),
-                              Icon(Icons.pie_chart, size: 32, color: Colors.deepPurple),
-                              SizedBox(height: 12),
-                              Text('88% Used', style: TextStyle(fontSize: 14)),
-                              Text('Warning: Low space', style: TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),
-                      
-                              
+                            children: [
+                              const Text('Storage', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 12),
+                              _storageIcon(),
+                              const SizedBox(height: 12),
+                              Text(_storageText, style: const TextStyle(fontSize: 14)),
+                              Text(
+                                _isLowSpace ? 'Warning: Low space' : 'Healthy', 
+                                style: TextStyle(fontSize: 12, color: _isLowSpace ? Colors.red : Colors.black54), 
+                                textAlign: TextAlign.center
+                              ),
                             ],
                           ),
                         ),
@@ -272,7 +331,7 @@ class _DashboardState extends State<Dashboard> {
                             children: [
                               const Text('Temperature', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 12),
-                              const Icon(Icons.thermostat, size: 32, color: Colors.black87),
+                              _temperatureIcon(),
                               const SizedBox(height: 12),
                               const Text('Normal:', style: TextStyle(fontSize: 12)),
                               Text('Temp: $_batteryTemperature', style: const TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),                            ],
@@ -455,5 +514,71 @@ class _DashboardState extends State<Dashboard> {
     ),
     ); 
   }
+
+  void _calculateOverallHealth() {
+    setState(() {
+      String health = _batteryHealth;
+
+      if (health == 'Failed' || health == 'Overheated' ||
+        health == 'Overvoltage' || health == 'Dead' || 
+        _storagePercent >= 95) {
+          _healthStatus = 'Poor';
+          _statusColor = Colors.red;
+          _healthMessage = 'Critical issues detected';
+          
+          } 
+
+      else if (_batteryLevel <= 20 || _storagePercent >= 85) {
+        _healthStatus = 'Fair';
+        _statusColor = Colors.orange;
+        _healthMessage = 'Some issues detected';
+      } 
+
+      else {
+        _healthStatus = 'Good';
+        _statusColor = Colors.green;
+        _healthMessage = 'Overall good health';
+      }
+    });
+  }
+
+  Widget _batteryIcon() {
+    final health = _batteryHealth.toLowerCase();
+    final bool hasCriticalHealth = health.contains('failed') ||
+        health.contains('overheat') ||
+        health.contains('overvoltage') ||
+        health.contains('dead');
+
+    if (hasCriticalHealth || _batteryLevel <= 20) {
+      return const Icon(Icons.battery_alert, size: 32, color: Colors.red);
+    } else if (_batteryLevel <= 40) {
+      return const Icon(Icons.battery_2_bar, size: 32, color: Colors.orange);
+    } else {
+      return const Icon(Icons.battery_charging_full, size: 32, color: Colors.green);
+    }
+  }
+
+  Widget _storageIcon() {
+    if (_storagePercent >= 95) {
+      return const Icon(Icons.storage, size: 32, color: Colors.red);
+    } else if (_storagePercent >= 85) {
+      return const Icon(Icons.storage, size: 32, color: Colors.orange);
+    } else {
+      return const Icon(Icons.storage, size: 32, color: Colors.green);
+    }
+  }
+
+  Widget _temperatureIcon() {
+    String temp = _batteryTemperature.replaceAll('°C', '').trim();
+    int batteryTemp =  int.parse(temp);
+
+      if (batteryTemp >= 36) {
+        return const Icon(Icons.thermostat, size: 32, color: Colors.red);
+      } else {
+        return const Icon(Icons.thermostat, size: 32, color: Colors.green);
+      }
+    }
+
+
+
 }
-  
