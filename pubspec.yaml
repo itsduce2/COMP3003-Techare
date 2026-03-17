@@ -37,6 +37,8 @@ dependencies:
   device_info_plus: ^12.3.0
   battery_info_v2: ^1.1.5
   storage_space: ^1.2.0
+  shared_preferences: ^2.0.15
+
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../device_info_service.dart';
 import '../battery_service.dart';
 import '../storage_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -31,6 +32,10 @@ class _DashboardState extends State<Dashboard> {
   String _healthMessage = 'Loading...'; 
   Color _statusColor = Colors.white;
 
+  // Diagnostic variables
+  bool _isScanning = false;          
+  String _lastScanDate = 'Never';
+
 
   
 
@@ -41,7 +46,38 @@ class _DashboardState extends State<Dashboard> {
     _loadDeviceData();
     _loadBatteryData();
     _loadStorageData();
+    _loadLastScanDate();
     _initDashboard();
+  }
+
+  Future<void> _loadLastScanDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _lastScanDate = prefs.getString('last_scan_date') ?? 'Never';
+    });
+  }
+
+  Future<void> _saveLastScanDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    String now = "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
+    await prefs.setString('last_scan_date', now);
+    setState(() {
+      _lastScanDate = now;
+    });
+  }
+
+  Future<void> _handleDiagnostic() async {
+    // Start the loading spinner
+    setState(() => _isScanning = true);
+    
+    await Future.delayed(const Duration(seconds: 2));
+    
+    await _initDashboard();    // Refresh all hardware sensors
+    await _saveLastScanDate(); // Persist the new scan date
+
+    // Stop the loading spinner and show results
+    setState(() => _isScanning = false);
+    _showResultsPopup();
   }
 
   // loads device data and updates state
@@ -209,7 +245,7 @@ class _DashboardState extends State<Dashboard> {
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
                       // Simple logic: if white (loading), use light orange, else use the status color
-                      color: _statusColor == Colors.white ? Colors.orange[50] : _statusColor.withOpacity(0.1),
+                      color: _statusColor == Colors.white ? Colors.orange[50] : _statusColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -267,7 +303,7 @@ class _DashboardState extends State<Dashboard> {
                               _batteryIcon(),
                               const SizedBox(height: 12),
                               Text('Level: $_batteryLevel%', style: TextStyle(fontSize: 12)),
-                              Text('$_batteryHealth', style: TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),
+                              Text(_batteryHealth, style: TextStyle(fontSize: 12, color: Colors.black54), textAlign: TextAlign.center),
                             ],
                           ),
                         ),
@@ -299,7 +335,7 @@ class _DashboardState extends State<Dashboard> {
                               const SizedBox(height: 12),
                               Text(_storageText, style: const TextStyle(fontSize: 14)),
                               Text(
-                                _isLowSpace ? 'Warning: Low space' : 'Healthy', 
+                                _isLowSpace ? 'Warning: Low space' : 'Low usage', 
                                 style: TextStyle(fontSize: 12, color: _isLowSpace ? Colors.red : Colors.black54), 
                                 textAlign: TextAlign.center
                               ),
@@ -347,29 +383,34 @@ class _DashboardState extends State<Dashboard> {
 
                   // Run diagnostic button
                   SizedBox(
-                    width: double.infinity, // .infinity for full width
+                    width: double.infinity, // Full width
                     height: 56, 
                     child: ElevatedButton(
-                      onPressed: () {
-                        //placeholder for diagnostic
-                      },
+                      // Logic: If scanning, disable button; otherwise run diagnostic
+                      onPressed: _isScanning ? null : _handleDiagnostic,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurpleAccent,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12), // Your original 12
                         ),
                       ),
-                      child: const Text(
-                        'Run Diagnostic',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: _isScanning 
+                        ? const SizedBox(
+                            height: 24, 
+                            width: 24, 
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                          )
+                        : const Text(
+                            'Run Diagnostic',
+                            style: TextStyle(
+                              fontSize: 18,        // Your original size
+                              fontWeight: FontWeight.bold, // Your original weight
+                              color: Colors.white,
+                            ),
+                          ),
                     ),
                   ),
-                  
+                    
                   //padding
                   const SizedBox(height: 24), 
 
@@ -386,16 +427,14 @@ class _DashboardState extends State<Dashboard> {
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text('Recent Diagnostic', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            Text('(Last Scan xx/xx/xx)', style: TextStyle(fontSize: 14, color: Colors.black54)),
+                          children: [
+                            const Text('Recent Diagnostic', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('(Last Scan: $_lastScanDate)', style: const TextStyle(color: Colors.black54)),
                           ],
                         ),
-                        InkWell(
-                          onTap: () {
-                            // not implemented yet
-                          },
-                          child: const Text('View Results', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.w500)),
+                        TextButton(
+                          onPressed: _showResultsPopup, 
+                          child: const Text('View Results')
                         ),
                       ],
                     ),
@@ -570,15 +609,52 @@ class _DashboardState extends State<Dashboard> {
 
   Widget _temperatureIcon() {
     String temp = _batteryTemperature.replaceAll('°C', '').trim();
-    int batteryTemp =  int.parse(temp);
+    
+    // Use tryParse here. If 'temp' is "Loading...", batteryTemp becomes null.
+    int? batteryTemp = int.tryParse(temp);
 
-      if (batteryTemp >= 36) {
-        return const Icon(Icons.thermostat, size: 32, color: Colors.red);
-      } else {
-        return const Icon(Icons.thermostat, size: 32, color: Colors.green);
-      }
+    // If it's null (still loading), return a grey icon so it doesn't crash
+    if (batteryTemp == null) {
+      return const Icon(Icons.thermostat, size: 32, color: Colors.grey);
     }
 
+    // Now we know batteryTemp is a real number, so we can compare it
+    if (batteryTemp >= 36) {
+      return const Icon(Icons.thermostat, size: 32, color: Colors.red);
+    } else {
+      return const Icon(Icons.thermostat, size: 32, color: Colors.green);
+    }
+  }
 
+  void _showResultsPopup() {
+
+    if (_healthStatus == 'Loading...') return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Diagnostic Report'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min, // Fits the popup to the content
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Status: $_healthStatus', style: TextStyle(color: _statusColor, fontWeight: FontWeight.bold)),
+            const Divider(),
+            Text('Message: $_healthMessage'),
+            const SizedBox(height: 10),
+            Text('Storage: $_storageText'),
+            Text('Battery: $_batteryLevel% ($_batteryHealth)'),
+            Text('Temperature: $_batteryTemperature'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), 
+            child: const Text('Close')
+          ),
+        ],
+      ),
+    );
+  }
 
 }
