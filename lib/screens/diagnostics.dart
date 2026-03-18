@@ -25,7 +25,6 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
   // Storage variables
   double _storagePercent = 0.0;
   String _storageText = 'Loading...';
-  bool _isLowSpace = false;
 
   // Overall health variables
   String _healthStatus = 'Loading...';
@@ -42,7 +41,6 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
   @override
   void initState() {
     super.initState();
-    // load persisted data first, then refresh live sensor data
     _init();
   }
 
@@ -55,7 +53,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     await _initDashboard();
   }
 
-  // reads the last scan date from storage and shows it in the UI
+  // loads the last scan date from storage
   Future<void> _loadLastScanDate() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -73,15 +71,14 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     });
   }
 
-  // reads the saved scan history from storage
-  // each entry is a pipe-separated string so we split it back into a map
+  // loads the previous scan results from storage
   Future<void> _loadPreviousResults() async {
     final prefs = await SharedPreferences.getInstance();
     final List<String>? stored = prefs.getStringList('previous_results');
     if (stored != null) {
       setState(() {
         _previousResults = stored.map((entry) {
-          final res = entry.split('/n hi');
+          final res = entry.split(' | ');
           return {
             'date': res[0],
             'status': res[1],
@@ -200,7 +197,6 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
       setState(() {
         _storagePercent = storage.usageValue * 100;
         _storageText = '${_storagePercent.toStringAsFixed(0)}% Used';
-        _isLowSpace = _storagePercent >= 95;
       });
     } catch (e) {
       debugPrint("Failed to get storage data: $e");
