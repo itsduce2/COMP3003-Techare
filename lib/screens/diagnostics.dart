@@ -73,14 +73,15 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     });
   }
 
-  // loads the previous scan results from storagedo
+  // reads the saved scan history from storage
+  // each entry is a pipe-separated string so we split it back into a map
   Future<void> _loadPreviousResults() async {
     final prefs = await SharedPreferences.getInstance();
     final List<String>? stored = prefs.getStringList('previous_results');
     if (stored != null) {
       setState(() {
         _previousResults = stored.map((entry) {
-          final res = entry.split(' | ');
+          final res = entry.split('/n hi');
           return {
             'date': res[0],
             'status': res[1],
@@ -147,6 +148,23 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
         ],
       ),
     );
+  }
+
+  // handling for 'Run Diagnostics' button
+  Future<void> _handleDiagnostic() async {
+    // spinner and delay
+    setState(() => _isScanning = true);
+    await Future.delayed(const Duration(seconds: 2));
+    
+    // refresh all sensors
+    await _initDashboard();
+    
+    // save the date and add to history
+    await _saveLastScanDate();
+    await _savePreviousResult();
+    
+    setState(() => _isScanning = false);
+    _showResultsPopup();
   }
 
   // calls the service to get device data
@@ -227,58 +245,134 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     });
   }
 
+  // popup for diagnostic results
+  void _showResultsPopup() {
+    if (_healthStatus == 'Loading...') return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Diagnostic Report'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Status: $_healthStatus', style: TextStyle(color: _statusColor, fontWeight: FontWeight.bold)),
+            const Divider(),
+            Text('Message: $_healthMessage'),
+            const SizedBox(height: 10),
+            Text('Storage: $_storageText'),
+            Text('Battery: $_batteryLevel% ($_batteryHealth)'),
+            Text('Temperature: $_batteryTemperature'),
+            
+            //padding 
+            const SizedBox(height: 15), 
+
+            const Text(
+              'Still having issues with your device?',
+              style: TextStyle(fontSize: 13, color: Colors.black54),
+            ),
+            const SizedBox(height: 8),
+            
+            //troubleshooting button NOT FINISHED YET
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                // need to add troubleshooting surey
+                onPressed: () => Navigator.pop(context),
+
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.deepPurpleAccent),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Troubleshoot Device',
+                  style: TextStyle(color: Colors.deepPurpleAccent),
+                ),
+              ),
+            ),
+
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context),
+                style: FilledButton.styleFrom(
+                  side: const BorderSide(color: Colors.deepPurpleAccent),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Close',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+        // actions: [
+        //   TextButton(
+        //     onPressed: () => Navigator.pop(context),
+        //     child: const Text('Close'),
+        //   ),
+        // ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       // background colour
       backgroundColor: Colors.blueGrey[50],
-      
+
       body: SafeArea(
         //SafeArea
         child: SingleChildScrollView(
           child: Column(
             // vertical column layout
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            
-            // Header
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(24.0), // Padding
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Greeting column
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Hi, Amina 👋',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              // Header
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.all(24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Greeting column
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Hi, Amina 👋',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Here are your diagnostics',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.deepPurple,
+                        Text(
+                          'Here are your diagnostics',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.deepPurple,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  // Icons
-                  Row(
-                    children: const [
-                      Icon(Icons.notifications_none, size: 28),
-                      SizedBox(width: 16),
-                      Icon(Icons.account_circle, size: 40),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                    // Icons
+                    Row(
+                      children: const [
+                        Icon(Icons.notifications_none, size: 28),
+                        SizedBox(width: 16),
+                        Icon(Icons.account_circle, size: 40),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
 
               //padding
               const SizedBox(height: 24),
@@ -289,44 +383,44 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    
+
                     // Device info
                     Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-             
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     color: Colors.grey.withOpacity(0.25),
-                      //     blurRadius: 10,
-                      //     offset: const Offset(0, 4),
-                      //   ),
-                      // ],
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.smartphone, size: 40, color: Colors.grey),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _deviceName,
-                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                _deviceOS,
-                                style: const TextStyle(fontSize: 16, color: Colors.grey),
-                              ),
-                            ],
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+
+                        // boxShadow: [
+                        //   BoxShadow(
+                        //     color: Colors.grey.withOpacity(0.25),
+                        //     blurRadius: 10,
+                        //     offset: const Offset(0, 4),
+                        //   ),
+                        // ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.smartphone, size: 40, color: Colors.grey),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _deviceName,
+                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  _deviceOS,
+                                  style: const TextStyle(fontSize: 16, color: Colors.grey),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
                     //padding
                     const SizedBox(height: 24),
@@ -357,32 +451,43 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
                     // Recent results section
                     const Text('Recent Results', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    
+
                     //padding
                     const SizedBox(height: 12),
-                    
+
+                    // Card showing the most recent scan with a View button
                     Container(
                       padding: const EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                       ),
+
                       //layout row
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          //last scan date
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text('November 9, 2025', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                              SizedBox(height: 4),
-                              Text('Battery Health 70%; Low Storage', style: TextStyle(fontSize: 14, color: Colors.black87)),
+                            children: [
+                              Text(
+                                _lastScanDate == 'Never' ? 'No recent scan' : _lastScanDate,
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              //summary of results 
+                              Text(
+                                _lastScanDate == 'Never'
+                                    ? 'Run a diagnostic to see results'
+                                    : '$_healthStatus — Battery $_batteryLevel%; $_storageText',
+                                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                              ),
                             ],
                           ),
+                          // opens the results popup
                           InkWell(
-                            onTap: () {
-                              // not implemented yet
-                            },
+                            onTap: _showResultsPopup,
                             child: const Text('View', style: TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600, fontSize: 16)),
                           ),
                         ],
@@ -392,31 +497,38 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                     //padding
                     const SizedBox(height: 24),
 
-                    // Run diagnostic button
+                    // Run diagnostics button
                     SizedBox(
                       width: double.infinity,
                       height: 56,
                       child: FilledButton(
-                        onPressed: () {
-                          //placeholder for diagnostic
-                        },
+                        // disabled while a scan is already running
+                        onPressed: _isScanning ? null : _handleDiagnostic,
                         style: FilledButton.styleFrom(
                           backgroundColor: Colors.deepPurpleAccent,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          'Run Diagnostics',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
+
+                        // show spinner while scanning
+                        child: _isScanning
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                              )
+                            : const Text(
+                                'Run Diagnostics',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
                       ),
                     ),
 
                     //padding
                     const SizedBox(height: 32),
 
-                    // Previous results section
+                    // Previous results section (still placeholder)
                     const Text('Previous Results', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     
                     //padding
@@ -449,6 +561,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                   ],
                 ),
               ),
+
             ],
           ),
         ),
