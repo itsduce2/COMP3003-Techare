@@ -55,7 +55,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     await _initDashboard();
   }
 
-  // loads the last scan date from storage
+  // reads the last scan date from storage and shows it in the UI
   Future<void> _loadLastScanDate() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -321,6 +321,38 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     );
   }
 
+  // view button popup 
+  void _showHistoryPopup(Map<String, String> result) {
+    final String status = result['status'] ?? 'Unknown';
+    Color statusColor = Colors.green;
+    if (status == 'Poor') statusColor = Colors.red;
+    if (status == 'Fair') statusColor = Colors.orange;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Scan — ${result['date']}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Status: $status', style: TextStyle(color: statusColor, fontWeight: FontWeight.bold)),
+            const Divider(),
+            Text('Battery: ${result['battery']}'),
+            Text('Storage: ${result['storage']}'),
+            Text('Temperature: ${result['temperature']}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -528,36 +560,117 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                     //padding
                     const SizedBox(height: 32),
 
-                    // Previous results section (still placeholder)
-                    const Text('Previous Results', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    
-                    //padding
-                    const SizedBox(height: 12),
-
-                    // Placeholder for results
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Column(
-                        children: const [
-                          Icon(Icons.history, color: Colors.grey, size: 48),
-                          SizedBox(height: 16),
-                          Text(
-                            'No previous scans',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+                    // Previous results header with clear button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Previous Results', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        // only show Clear when there is something to clear
+                        if (_previousResults.isNotEmpty)
+                          TextButton.icon(
+                            onPressed: _confirmClear,
+                            icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                            label: const Text('Clear', style: TextStyle(color: Colors.red)),
                           ),
-                          SizedBox(height: 4)
-                        ],
-                      ),
+                      ],
                     ),
 
                     //padding
+                    const SizedBox(height: 12),
+
+                    // list of previous scans or isEmpty message
+                    if (_previousResults.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16.0),
+                        child: Text(
+                          'No previous scans yet. Run a diagnostic to get started.',
+                          style: TextStyle(fontSize: 14, color: Colors.black54),
+                        ),
+                      )
+                    else
+                      // map each saved result to a card
+                      Column(
+                        children: _previousResults.map((result) {
+                          final String status = result['status'] ?? 'Unknown';
+                          // colour dot fro health status indicator
+                          Color statusColor = Colors.green;
+                          if (status == 'Poor') statusColor = Colors.red;
+                          if (status == 'Fair') statusColor = Colors.orange;
+
+                          return Padding(
+                            //spacing between cards
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            
+                            child: Container(
+                              padding: const EdgeInsets.all(16.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        result['date'] ?? '',
+                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.circle, size: 10, color: statusColor),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '$status — Battery ${result['battery']}',
+                                            style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  
+                                  // previous scan popup
+                                  InkWell(
+                                    onTap: () => _showHistoryPopup(result),
+                                    child: const Text('View', style: TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600, fontSize: 16)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+
+                    //padding
+                    const SizedBox(height: 16),
+
+                    // Clear history button (only shown when there is history to clear)
+                    if (_previousResults.isNotEmpty)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: OutlinedButton.icon(
+                          onPressed: _confirmClear,
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          label: const Text(
+                            'Clear History',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.red, width: 2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    //padding
                     const SizedBox(height: 40),
+
                   ],
                 ),
               ),
