@@ -78,7 +78,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     if (stored != null) {
       setState(() {
         _previousResults = stored.map((entry) {
-          final res = entry.split(' | ');
+          final res = entry.split('|');
           return {
             'date': res[0],
             'status': res[1],
