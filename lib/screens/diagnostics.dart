@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../device_info_service.dart';
 import '../battery_service.dart';
 import '../storage_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// Diagnostics tab — lets the user run a scan and view a history of past results.
 class DiagnosticsScreen extends StatefulWidget {
   const DiagnosticsScreen({super.key});
 
@@ -32,10 +32,121 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
   String _healthMessage = 'Loading...';
   Color _statusColor = Colors.white;
 
+  // Diagnostic variables
+  bool _isScanning = false;
+  String _lastScanDate = 'Never';
+
+  // Previous results list
+  List<Map<String, String>> _previousResults = [];
+
   @override
   void initState() {
     super.initState();
-    _initDashboard();
+    // load persisted data first, then refresh live sensor data
+    _init();
+  }
+
+  // loads saved history and last scan date at the same time, then fetches fresh sensor data
+  Future<void> _init() async {
+    await Future.wait([
+      _loadLastScanDate(),
+      _loadPreviousResults(),
+    ]);
+    await _initDashboard();
+  }
+
+  // loads the last scan date from storage
+  Future<void> _loadLastScanDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _lastScanDate = prefs.getString('last_scan_date') ?? 'Never';
+    });
+  }
+
+  // saves the current scan date to now 
+  Future<void> _saveLastScanDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    String now = "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
+    await prefs.setString('last_scan_date', now);
+    setState(() {
+      _lastScanDate = now;
+    });
+  }
+
+  // loads the previous scan results from storagedo
+  Future<void> _loadPreviousResults() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String>? stored = prefs.getStringList('previous_results');
+    if (stored != null) {
+      setState(() {
+        _previousResults = stored.map((entry) {
+          final res = entry.split(' | ');
+          return {
+            'date': res[0],
+            'status': res[1],
+            'battery': res[2],
+            'storage': res[3],
+            'temperature': res[4],
+          };
+        }).toList();
+      });
+    }
+  }
+
+  // saves the current scan result to the history
+  Future<void> _savePreviousResult() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String now = "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
+    final Map<String, String> newEntry = {
+      'date': now,
+      'status': _healthStatus,
+      'battery': '$_batteryLevel% ($_batteryHealth)',
+      'storage': _storageText,
+      'temperature': _batteryTemperature,
+    };
+
+    // LIFO for scan results
+    _previousResults.insert(0, newEntry);
+    final List<String> encoded = _previousResults.map((e) =>
+      '${e['date']}|${e['status']}|${e['battery']}|${e['storage']}|${e['temperature']}'
+    ).toList();
+    await prefs.setStringList('previous_results', encoded);
+    setState(() {});
+  }
+
+  // clears diagnostic history
+  Future<void> _clearAllResults() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('previous_results');
+    await prefs.remove('last_scan_date');
+    setState(() {
+      _previousResults = [];
+      _lastScanDate = 'Never';
+    });
+  }
+
+  // user confirmation to clear scan history
+  void _confirmClear() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear All Results'),
+        content: const Text('This will permanently delete all previous scan history. Are you sure?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _clearAllResults();
+            },
+            child: const Text('Clear', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   // calls the service to get device data
