@@ -244,7 +244,6 @@ class _DashboardState extends State<Dashboard> {
                   Container(
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      // Simple logic: if white (loading), use light orange, else use the status color
                       color: _statusColor == Colors.white ? Colors.orange[50] : _statusColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -478,7 +477,8 @@ class _DashboardState extends State<Dashboard> {
                     ],
                   ),
                   
-                  const SizedBox(height: 12), // gap between grid rows
+                  //padding
+                  const SizedBox(height: 12), 
                   
                   // Bottom row (4x4 grid)
                   Row(
@@ -608,17 +608,14 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _temperatureIcon() {
-    String temp = _batteryTemperature.replaceAll('°C', '').trim();
-    
-    // Use tryParse here. If 'temp' is "Loading...", batteryTemp becomes null.
-    int? batteryTemp = int.tryParse(temp);
+    final String temp = _batteryTemperature.replaceAll('°C', '').trim();
+    final int? batteryTemp = int.tryParse(temp);
 
-    // If it's null (still loading), return a grey icon so it doesn't crash
+    // error handling /still loading
     if (batteryTemp == null) {
       return const Icon(Icons.thermostat, size: 32, color: Colors.grey);
     }
 
-    // Now we know batteryTemp is a real number, so we can compare it
     if (batteryTemp >= 36) {
       return const Icon(Icons.thermostat, size: 32, color: Colors.red);
     } else {
