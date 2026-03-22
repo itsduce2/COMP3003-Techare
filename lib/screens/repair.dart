@@ -87,6 +87,73 @@ class _RepairScreenState extends State<RepairScreen> {
               //padding
               const SizedBox(height: 24),
 
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    // Troubleshooting survey card
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'Troubleshooting Survey',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                 
+                                  //padding
+                                  SizedBox(height: 4),
+                                  
+                                  Text(
+                                    'Answer a few quick questions so we can understand your device\'s symptoms',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+
+                                  //padding
+                                  SizedBox(height: 8),
+
+                                  Text(
+                                    '3min',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.deepPurpleAccent,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right, color: Colors.grey),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    //padding
+                    const SizedBox(height: 40),
+
+                  ],
+                ),
+              ),
+
             ],
           ),
         ),
