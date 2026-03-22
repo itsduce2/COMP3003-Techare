@@ -13,6 +13,10 @@ class _RepairScreenState extends State<RepairScreen> {
   // Device info variables
   String _deviceName = 'Your Device';
 
+  // repair categories
+  String _selectedCategory = 'All';
+  final List<String> _categories = ['All', 'Battery', 'Storage', 'Overheating'];
+
   @override
   void initState() {
     super.initState();
@@ -116,10 +120,10 @@ class _RepairScreenState extends State<RepairScreen> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-
+                                  
                                   //padding
                                   SizedBox(height: 4),
-
+                                  
                                   Text(
                                     'Answer a few quick questions so we can understand your device\'s symptoms',
                                     style: TextStyle(
@@ -127,10 +131,10 @@ class _RepairScreenState extends State<RepairScreen> {
                                       color: Colors.black54,
                                     ),
                                   ),
-
+                                  
                                   //padding
                                   SizedBox(height: 8),
-                                  
+                                 
                                   Text(
                                     '3min',
                                     style: TextStyle(
@@ -145,6 +149,47 @@ class _RepairScreenState extends State<RepairScreen> {
                             const Icon(Icons.chevron_right, color: Colors.grey),
                           ],
                         ),
+                      ),
+                    ),
+
+                    //padding
+                    const SizedBox(height: 24),
+
+                    // Category tabs
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _categories.map((cat) {
+                          final bool isSelected = _selectedCategory == cat;
+
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: InkWell(
+                              onTap: () => setState(() => _selectedCategory = cat),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+
+                                decoration: BoxDecoration(
+                                  color: isSelected ? Colors.deepPurpleAccent : Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                
+                                child: Text(
+                                  cat,
+                                  style: TextStyle(
+                                    color: isSelected ? Colors.white : Colors.black87,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
 
