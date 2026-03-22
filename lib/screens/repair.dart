@@ -94,8 +94,9 @@ class _RepairScreenState extends State<RepairScreen> {
                   children: [
 
                     // Troubleshooting survey card
-                    GestureDetector(
+                    InkWell(
                       onTap: () {},
+                      borderRadius: BorderRadius.circular(16),
                       child: Container(
                         padding: const EdgeInsets.all(16.0),
                         decoration: BoxDecoration(
@@ -115,10 +116,10 @@ class _RepairScreenState extends State<RepairScreen> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                 
+
                                   //padding
                                   SizedBox(height: 4),
-                                  
+
                                   Text(
                                     'Answer a few quick questions so we can understand your device\'s symptoms',
                                     style: TextStyle(
@@ -129,7 +130,7 @@ class _RepairScreenState extends State<RepairScreen> {
 
                                   //padding
                                   SizedBox(height: 8),
-
+                                  
                                   Text(
                                     '3min',
                                     style: TextStyle(
