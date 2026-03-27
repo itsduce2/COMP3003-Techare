@@ -520,7 +520,7 @@ class _RepairScreenState extends State<RepairScreen> {
   }
 }
 
-//survey options and interation logic
+//survey options and logic
 class _TroubleshootingSurveyDialog extends StatefulWidget {
   final void Function(String category) onComplete;
 

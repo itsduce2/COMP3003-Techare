@@ -8,10 +8,10 @@ class DiagnosticsScreen extends StatefulWidget {
   const DiagnosticsScreen({super.key});
 
   @override
-  State<DiagnosticsScreen> createState() => _DiagnosticsScreenState();
+  State<DiagnosticsScreen> createState() => DiagnosticsScreenState();
 }
 
-class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
+class DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
   // Device info variables
   String _deviceName = 'Loading device info...';
@@ -42,6 +42,11 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
   void initState() {
     super.initState();
     _init();
+  }
+
+  Future<void> refresh() async {
+  await _loadLastScanDate();
+  await _loadPreviousResults();
   }
 
   // loads saved history and last scan date at the same time, then fetches fresh sensor data

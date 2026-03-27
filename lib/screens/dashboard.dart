@@ -66,14 +66,25 @@ class _DashboardState extends State<Dashboard> {
     });
   }
 
+  Future<void> _savePreviousResult() async {
+  final prefs = await SharedPreferences.getInstance();
+  final String now = "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
+  final String newEntry =
+      '$now|$_healthStatus|$_batteryLevel% ($_batteryHealth)|$_storageText|$_batteryTemperature';
+  final List<String> existing = prefs.getStringList('previous_results') ?? [];
+  existing.insert(0, newEntry);
+  await prefs.setStringList('previous_results', existing);
+}
+
   Future<void> _handleDiagnostic() async {
     // Start the loading spinner
     setState(() => _isScanning = true);
     
     await Future.delayed(const Duration(seconds: 2));
     
-    await _initDashboard();    // Refresh all hardware sensors
-    await _saveLastScanDate(); // Persist the new scan date
+    await _initDashboard();    // Refresh
+    await _saveLastScanDate(); 
+    await _savePreviousResult();
 
     // Stop the loading spinner and show results
     setState(() => _isScanning = false);
