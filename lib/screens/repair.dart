@@ -1,6 +1,36 @@
 import 'package:flutter/material.dart';
 import '../device_info_service.dart';
 
+const List<Map<String, dynamic>> _surveyQuestions = [
+  {
+    'question': 'What is the main issue you\'re experiencing?',
+    'options': [
+      'Battery draining quickly',
+      'Device overheating',
+      'Running out of storage',
+      'Device running slowly',
+      'Other',
+    ],
+  },
+  {
+    'question': 'How long has this been happening?',
+    'options': [
+      'Just started today',
+      'A few days',
+      'A week or more',
+      'Always been an issue',
+    ],
+  },
+  {
+    'question': 'How severe is the issue?',
+    'options': [
+      'Minor (little impact on use)',
+      'Moderate (affects daily use)',
+      'Severe (device is barely usable)',
+    ],
+  },
+];
+
 class RepairScreen extends StatefulWidget {
   const RepairScreen({super.key});
 
@@ -61,8 +91,8 @@ class _RepairScreenState extends State<RepairScreen> {
         },
       ],
     },
-    
-    //Fix overheating
+
+    // Fix overheating
     {
       'title': 'Fix Overheating',
       'description': 'Close background apps, check charging habits, update software...',
@@ -99,6 +129,7 @@ class _RepairScreenState extends State<RepairScreen> {
       ],
     },
 
+    // Storage performance reduction
     {
       'title': 'Storage Performance Reduction',
       'description': 'Clear cache, uninstall unused apps, move photos to cloud...',
@@ -129,7 +160,8 @@ class _RepairScreenState extends State<RepairScreen> {
         },
       ],
     },
-    //improve battery life
+
+    // Improve battery life
     {
       'title': 'Improve Battery Life',
       'description': 'Adjust brightness, disable background refresh, enable battery saver...',
@@ -182,14 +214,40 @@ class _RepairScreenState extends State<RepairScreen> {
     });
   }
 
+  // opens the troubleshooting survey dialog
+  void _openTroubleshootingSurvey() {
+    showDialog(
+      context: context,
+      builder: (context) => _TroubleshootingSurveyDialog(
+        onComplete: (category) {
+          Navigator.pop(context);
+          setState(() => _selectedCategory = category);
+        },
+      ),
+    );
+  }
+
   // opens the tutorial preview dialog
   void _openTutorialPreview(Map<String, dynamic> tutorial) {
     showDialog(
       context: context,
-      builder: (context) => _TutorialPreviewDialog(tutorial: tutorial),
-      );
+      builder: (context) => _TutorialPreviewDialog(
+        tutorial: tutorial,
+        onStart: () {
+          Navigator.pop(context);
+          _openTutorialSteps(tutorial);
+        },
+      ),
+    );
   }
-  
+
+  // opens the tutorial steps dialog
+  void _openTutorialSteps(Map<String, dynamic> tutorial) {
+    showDialog(
+      context: context,
+      builder: (context) => _TutorialStepsDialog(tutorial: tutorial),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +317,7 @@ class _RepairScreenState extends State<RepairScreen> {
 
                     // Troubleshooting survey card
                     InkWell(
-                      onTap: () {},
+                      onTap: _openTroubleshootingSurvey,
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
                         padding: const EdgeInsets.all(16.0),
@@ -280,10 +338,10 @@ class _RepairScreenState extends State<RepairScreen> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  
+
                                   //padding
                                   SizedBox(height: 4),
-                                  
+
                                   Text(
                                     'Answer a few quick questions so we can understand your device\'s symptoms',
                                     style: TextStyle(
@@ -291,10 +349,10 @@ class _RepairScreenState extends State<RepairScreen> {
                                       color: Colors.black54,
                                     ),
                                   ),
-                                  
+
                                   //padding
                                   SizedBox(height: 8),
-                                  
+
                                   Text(
                                     '3min',
                                     style: TextStyle(
@@ -321,7 +379,7 @@ class _RepairScreenState extends State<RepairScreen> {
                       child: Row(
                         children: _categories.map((cat) {
                           final bool isSelected = _selectedCategory == cat;
-                          
+
                           return Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: InkWell(
@@ -332,12 +390,12 @@ class _RepairScreenState extends State<RepairScreen> {
                                   horizontal: 16,
                                   vertical: 8,
                                 ),
-                                
+
                                 decoration: BoxDecoration(
                                   color: isSelected ? Colors.deepPurpleAccent : Colors.white,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                
+
                                 child: Text(
                                   cat,
                                   style: TextStyle(
@@ -462,10 +520,123 @@ class _RepairScreenState extends State<RepairScreen> {
   }
 }
 
+//survey options and interation logic
+class _TroubleshootingSurveyDialog extends StatefulWidget {
+  final void Function(String category) onComplete;
+
+  const _TroubleshootingSurveyDialog({required this.onComplete});
+
+  @override
+  State<_TroubleshootingSurveyDialog> createState() => _TroubleshootingSurveyDialogState();
+}
+
+class _TroubleshootingSurveyDialogState extends State<_TroubleshootingSurveyDialog> {
+
+  // Survey variables
+  int _step = 0;
+  String? _selectedAnswer;
+  String? _firstAnswer;
+
+  // maps the first answer to a category
+  String _mapToCategory(String answer) {
+    final String lower = answer.toLowerCase();
+    if (lower.contains('battery')) return 'Battery';
+    if (lower.contains('overheating')) return 'Overheating';
+    if (lower.contains('storage')) return 'Storage';
+    return 'All';
+  }
+
+  // moves to the next or completes
+  void _next() {
+    if (_selectedAnswer == null) return;
+    if (_step == 0) _firstAnswer = _selectedAnswer;
+    if (_step < _surveyQuestions.length - 1) {
+      setState(() {
+        _step++;
+        _selectedAnswer = null;
+      });
+    } else {
+      widget.onComplete(_mapToCategory(_firstAnswer ?? ''));
+    }
+  }
+
+  void _back() {
+    setState(() {
+      _step--;
+      _selectedAnswer = null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Map<String, dynamic> question = _surveyQuestions[_step];
+    final List<String> options = List<String>.from(question['options']);
+
+    return AlertDialog(
+      title: Text('Question ${_step + 1} of ${_surveyQuestions.length}'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            Text(
+              question['question'],
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+
+            //padding
+            const SizedBox(height: 12),
+
+            // answer options
+            ...options.map(
+              (option) => RadioListTile<String>(
+                title: Text(option, style: const TextStyle(fontSize: 14)),
+                value: option,
+                groupValue: _selectedAnswer,
+                activeColor: Colors.deepPurpleAccent,
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                onChanged: (val) => setState(() => _selectedAnswer = val),
+              ),
+            ),
+
+          ],
+        ),
+      ),
+      actions: [
+
+        // only show Back if not on first question
+        if (_step > 0)
+          TextButton(
+            onPressed: _back,
+            child: const Text('Back'),
+          ),
+
+        FilledButton(
+          onPressed: _selectedAnswer == null ? null : _next,
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.deepPurpleAccent,
+          ),
+          child: Text(
+            _step < _surveyQuestions.length - 1 ? 'Next' : 'See Results',
+          ),
+        ),
+
+      ],
+    );
+  }
+}
+
+// tutorial preview 
 class _TutorialPreviewDialog extends StatelessWidget {
   final Map<String, dynamic> tutorial;
+  final VoidCallback onStart;
 
-  const _TutorialPreviewDialog({required this.tutorial});
+  const _TutorialPreviewDialog({
+    required this.tutorial,
+    required this.onStart,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -499,7 +670,7 @@ class _TutorialPreviewDialog extends StatelessWidget {
               InkWell(
                 onTap: () {},
                 child: const Text(
-                  'Buy spare parts',
+                  'Buy spare parts ↗',
                   style: TextStyle(
                     color: Colors.deepPurpleAccent,
                     fontSize: 13,
@@ -563,12 +734,124 @@ class _TutorialPreviewDialog extends StatelessWidget {
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: () {},
+          onPressed: onStart,
           style: FilledButton.styleFrom(
             backgroundColor: Colors.deepPurpleAccent,
           ),
           child: const Text('Start Tutorial'),
         ),
+      ],
+    );
+  }
+}
+
+//tutorial steps
+class _TutorialStepsDialog extends StatefulWidget {
+  final Map<String, dynamic> tutorial;
+
+  const _TutorialStepsDialog({required this.tutorial});
+
+  @override
+  State<_TutorialStepsDialog> createState() => _TutorialStepsDialogState();
+}
+
+class _TutorialStepsDialogState extends State<_TutorialStepsDialog> {
+
+  // Step variables
+  int _currentStep = 0;
+
+  List<Map<String, dynamic>> get _steps =>
+      List<Map<String, dynamic>>.from(widget.tutorial['steps']);
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = _steps;
+    final step = steps[_currentStep];
+    final int total = steps.length;
+    final bool isLast = _currentStep == total - 1;
+
+    return AlertDialog(
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Step ${_currentStep + 1} of $total',
+            style: const TextStyle(fontSize: 13, color: Colors.black54),
+          ),
+          //padding
+          const SizedBox(height: 4),
+          Text(
+            widget.tutorial['title'],
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+
+          // tutorial icons
+          Container(
+            height: 120,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Center(
+              child: Icon(Icons.smartphone, size: 60, color: Colors.grey),
+            ),
+          ),
+
+          //padding
+          const SizedBox(height: 16),
+
+          Text(
+            step['title'],
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+
+          //padding
+          const SizedBox(height: 8),
+
+          Text(
+            step['description'],
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
+            textAlign: TextAlign.center,
+          ),
+
+        ],
+      ),
+      actions: [
+
+        // only show previous if not on first step
+        if (_currentStep > 0)
+          OutlinedButton(
+            onPressed: () => setState(() => _currentStep--),
+            child: const Text('Previous'),
+          ),
+
+        FilledButton(
+          onPressed: () {
+            if (!isLast) {
+              setState(() => _currentStep++);
+            } else {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${widget.tutorial['title']} tutorial complete!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          },
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.deepPurpleAccent,
+          ),
+          child: Text(isLast ? 'Finish' : 'Next'),
+        ),
+
       ],
     );
   }

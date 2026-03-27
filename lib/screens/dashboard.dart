@@ -559,7 +559,7 @@ class _DashboardState extends State<Dashboard> {
       String health = _batteryHealth;
 
       if (health == 'Failed' || health == 'Overheated' ||
-        health == 'Overvoltage' || health == 'Dead' || 
+        health == 'Overvoltage' || health == 'Dead' || health == 'Unspecified Failure' ||
         _storagePercent >= 95) {
           _healthStatus = 'Poor';
           _statusColor = Colors.red;

@@ -327,7 +327,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Scan — ${result['date']}'),
+        title: Text('Scan: ${result['date']}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -508,7 +508,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                               Text(
                                 _lastScanDate == 'Never'
                                     ? 'Run a diagnostic to see results'
-                                    : '$_healthStatus — Battery $_batteryLevel%; $_storageText',
+                                    : '$_healthStatus: Battery $_batteryLevel%; $_storageText',
                                 style: const TextStyle(fontSize: 14, color: Colors.black87),
                               ),
                             ],
@@ -620,7 +620,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                                           Icon(Icons.circle, size: 10, color: statusColor),
                                           const SizedBox(width: 6),
                                           Text(
-                                            '$status — Battery ${result['battery']}',
+                                            '$status: Battery ${result['battery']}',
                                             style: const TextStyle(fontSize: 14, color: Colors.black87),
                                           ),
                                         ],
