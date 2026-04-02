@@ -154,7 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Dialog for Charging Habits selection
+  //Charging Habits selection
   void _showChargingHabitDialog() {
     // Parse existing saved value back into cycles
     double selectedCycles = 0;
@@ -351,7 +351,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ListTile(
                       title: const Text('Charging Habits', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       subtitle: Text(
-                        _chargingHabit.isEmpty ? 'Not set' : _chargingHabit,
+                        _chargingHabit.isEmpty ? 'Not set' : '$_chargingHabit cycles per day',
                         style: const TextStyle(fontSize: 14, color: Colors.black54),
                       ),
                       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
