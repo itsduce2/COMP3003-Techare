@@ -23,22 +23,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadDeviceProfile() async {
+    //get saved values from storage
     final prefs = await SharedPreferences.getInstance();
+    final age = prefs.getString('phone_age') ?? '';
+    final setDate = prefs.getString('phone_age_set_date');
     setState(() {
-      _phoneAge = prefs.getString('phone_age') ?? '';
+      //update age accounting for elapsed time
+      _phoneAge = _addMonths(age, setDate);
       _chargingHabit = prefs.getString('charging_habit') ?? '';
     });
   }
 
+  // Add calendar months elapsed since the age was last set
+  String _addMonths(String age, String? setDate) {
+    //nothing saved yet, return as is
+    if (age.isEmpty || setDate == null) return age;
+
+    //pull years and months out of the saved string e.g. "2y 3m"
+    final match = RegExp(r'(\d+)y (\d+)m').firstMatch(age);
+    if (match == null) return age;
+
+    int years = int.parse(match.group(1)!);
+    int months = int.parse(match.group(2)!);
+
+    //parse the date the age was last set
+    final from = DateTime.tryParse(setDate);
+    if (from == null) return age;
+
+    //work out how many calendar months have passed since then
+    final now = DateTime.now();
+    months += (now.year - from.year) * 12 + (now.month - from.month);
+
+    //carry overflow months into years
+    if (months >= 12) {
+      years += months ~/ 12;
+      months = months % 12;
+    }
+
+    return '${years}y ${months}m';
+  }
+
   // Dialog for Phone Age selection
   void _showPhoneAgeDialog() {
-    // Parse existing saved value back into years/months
-    int selectedYears = 0;
-    int selectedMonths = 0;
+    // Parse current display value back into years/months for the dropdowns
+    int selYears = 0;
+    int selMonths = 0;
     final match = RegExp(r'(\d+)y (\d+)m').firstMatch(_phoneAge);
     if (match != null) {
-      selectedYears = int.parse(match.group(1)!);
-      selectedMonths = int.parse(match.group(2)!);
+      selYears = int.parse(match.group(1)!);
+      selMonths = int.parse(match.group(2)!);
     }
 
     showDialog(
@@ -57,13 +90,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const Text('Years:', style: TextStyle(fontSize: 16)),
                       const SizedBox(width: 16),
                       DropdownButton<int>(
-                        value: selectedYears,
+                        value: selYears,
                         items: List.generate(11, (i) => i).map((y) {
                           return DropdownMenuItem(value: y, child: Text('$y'));
                         }).toList(),
                         onChanged: (value) {
                           setDialogState(() {
-                            selectedYears = value!;
+                            selYears = value!;
                           });
                         },
                       ),
@@ -76,13 +109,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const Text('Months:', style: TextStyle(fontSize: 16)),
                       const SizedBox(width: 16),
                       DropdownButton<int>(
-                        value: selectedMonths,
+                        value: selMonths,
                         items: List.generate(12, (i) => i).map((m) {
                           return DropdownMenuItem(value: m, child: Text('$m'));
                         }).toList(),
                         onChanged: (value) {
                           setDialogState(() {
-                            selectedMonths = value!;
+                            selMonths = value!;
                           });
                         },
                       ),
@@ -98,8 +131,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 TextButton(
                   onPressed: () async {
                     final nav = Navigator.of(context);
-                    final saved = '${selectedYears}y ${selectedMonths}m';
+                    final saved = '${selYears}y ${selMonths}m';
                     final prefs = await SharedPreferences.getInstance();
+                    // Only reset the set date if the value changed
+                    if (saved != prefs.getString('phone_age')) {
+                      await prefs.setString('phone_age_set_date', DateTime.now().toIso8601String());
+                    }
                     await prefs.setString('phone_age', saved);
                     if (!mounted) return;
                     setState(() {
