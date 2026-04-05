@@ -74,6 +74,7 @@ class _DashboardState extends State<Dashboard> {
   final List<String> existing = prefs.getStringList('previous_results') ?? [];
   existing.insert(0, newEntry);
   await prefs.setStringList('previous_results', existing);
+  await prefs.setString('last_battery_health', _batteryHealth);
 }
 
   Future<void> _handleDiagnostic() async {

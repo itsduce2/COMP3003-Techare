@@ -110,6 +110,8 @@ class DiagnosticsScreenState extends State<DiagnosticsScreen> {
       'temperature': _batteryTemperature,
     };
 
+    await prefs.setString('last_battery_health', _batteryHealth);
+
     // LIFO for scan results
     _previousResults.insert(0, newEntry);
     final List<String> encoded = _previousResults.map((e) =>

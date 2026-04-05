@@ -18,6 +18,8 @@ class Notifications {
     await _checkStorageAlerts(prefs);
     await _checkBatteryPredictionAlerts(prefs);
     await _checkScanReminder(prefs);
+    await _checkBatteryHealthChange(prefs);
+    await _checkBatteryTemperature(prefs);
   }
 
   // checks storage and fires alerts at 85% and 95%
@@ -32,8 +34,8 @@ class Notifications {
       if (!alreadyNotified) {
         await NotificationService.showNotification(
           id: _storageCriticalId,
-          title: 'Storage Critically Full',
-          body: 'Your storage is at ${storage.toStringAsFixed(0)}%. Free up space to keep your device running well.',
+          title: 'Storage Almost Full',
+          body: 'Your storage is at ${storage.toStringAsFixed(0)}%. Free up space to ensure your device runs well.',
         );
         await prefs.setBool('notified_storage_critical', true);
       }
@@ -134,6 +136,45 @@ class Notifications {
     } else {
       // reset reminder once they scan again
       await prefs.setBool('notified_scan_reminder', false);
+    }
+  }
+
+  // checks if battery health status has changed since last scan
+  static Future<void> _checkBatteryHealthChange(SharedPreferences prefs) async {
+    final savedHealth = prefs.getString('saved_battery_health') ?? '';
+    final currentHealth = prefs.getString('last_battery_health') ?? '';
+
+    if (savedHealth.isEmpty || currentHealth.isEmpty) return;
+
+    if (savedHealth != currentHealth) {
+      await NotificationService.showNotification(
+        id: 7,
+        title: 'Battery Health Changed',
+        body: 'Your battery health status has changed. Run a diagnostic to see what\'s happened.',
+      );
+      await prefs.setString('saved_battery_health', currentHealth);
+    }
+  }
+
+  // checks if battery temperature is too high
+  static Future<void> _checkBatteryTemperature(SharedPreferences prefs) async {
+    final tempStr = prefs.getString('last_battery_temperature') ?? '';
+    final temp = int.tryParse(tempStr.replaceAll('°C', '').trim());
+    if (temp == null) return;
+
+    if (temp >= 36) {
+      final alreadyNotified = prefs.getBool('notified_battery_temp') ?? false;
+      if (!alreadyNotified) {
+        await NotificationService.showNotification(
+          id: 8,
+          title: 'Battery Temperature High',
+          body: 'Your battery temperature is $temp°C. Avoid charging until it cools down to protect battery health.',
+        );
+        await prefs.setBool('notified_battery_temp', true);
+      }
+    } else {
+      // reset flag once temperature drops back below 36°C
+      await prefs.setBool('notified_battery_temp', false);
     }
   }
 }
