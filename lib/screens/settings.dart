@@ -174,7 +174,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'A full charge cycle = your battery going from 0% to 100% in total, even if topped up in smaller amounts throughout the day.',
+                'You complete one charge cycle when you’ve used (discharged) an amount that represents 100% of your battery’s capacity BUT not necessarily all from one charge. ',
                 style: TextStyle(fontSize: 13, color: Colors.black54),
               ),
               const SizedBox(height: 16),
