@@ -9,29 +9,12 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
+  final TextEditingController _habitController = TextEditingController();
+  int _selectedYears = 0;
+  int _selectedMonths = 0;
 
   void _nextPage() {
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  Widget _buildFeatureSlide(String title, String desc, Color color) {
-    return Container(
-      color: color.withOpacity(0.1),
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          Text(desc, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 40),
-          ElevatedButton(onPressed: _nextPage, child: const Text("Next")),
-        ],
-      ),
-    );
+    _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
   }
 
   @override
@@ -41,14 +24,52 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: [
-          // Slide 1
-          Center(
-            child: ElevatedButton(onPressed: _nextPage, child: const Text("Get Started")),
+          // Welcome Slide
+          Center(child: ElevatedButton(onPressed: _nextPage, child: const Text("Get Started"))),
+          
+          // Age Slide
+          _buildAgeSlide(),
+
+          // Habit Slide
+          Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Daily Charging Habits", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                const Text("Average charge cycles per day:", style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _habitController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(hintText: "e.g. 1.2", border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 40),
+                ElevatedButton(onPressed: _nextPage, child: const Text("Finalize")),
+              ],
+            ),
           ),
-          // Slide 2
-          _buildFeatureSlide("Track Health", "Monitor your battery cycles effectively.", Colors.blue),
-          // Slide 3
-          _buildFeatureSlide("Smart Alerts", "Get notified when your battery needs care.", Colors.purple),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAgeSlide() {
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text("How old is your phone?", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              DropdownButton<int>(value: _selectedYears, items: List.generate(11, (i) => DropdownMenuItem(value: i, child: Text("$i Y"))), onChanged: (v) => setState(() => _selectedYears = v!)),
+              DropdownButton<int>(value: _selectedMonths, items: List.generate(12, (i) => DropdownMenuItem(value: i, child: Text("$i M"))), onChanged: (v) => setState(() => _selectedMonths = v!)),
+            ],
+          ),
+          ElevatedButton(onPressed: _nextPage, child: const Text("Continue")),
         ],
       ),
     );
