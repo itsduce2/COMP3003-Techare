@@ -47,6 +47,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  // Save collected data and finish onboarding
+  Future<void> _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    //save device profile values
+    await prefs.setString('phone_age', '${_selYears}y ${_selMonths}m');
+    await prefs.setString('phone_age_set_date', DateTime.now().toIso8601String());
+    await prefs.setString('charging_habit', _phoneCycles.text.trim());
+
+    if (!mounted) return;
+    //Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,17 +69,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         physics: const NeverScrollableScrollPhysics(), //user can only navigate with buttons
         onPageChanged: (int page) => setState(() => _currentPage = page),
         children: [
-          _buildWelcomeScreen(),
-          ..._features.map((f) => _buildFeatureSlide(f)).toList(),
-          _buildAgeScreen(),
-          _buildHabitScreen(),
+          _welcomeScreen(),
+          ..._features.map((f) => _featSlides(f)).toList(),
+          _phoneAgeScreen(),
+          _cyclesScreen(),
+          _signUpScreen(),
         ],
       ),
     );
   }
 
   // Welcome screen
-  Widget _buildWelcomeScreen() {
+  Widget _welcomeScreen() {
     return Padding(
       padding: const EdgeInsets.all(24.0), // Padding
       child: Column(
@@ -93,7 +106,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 48),
-          _buildWideButton("Get Started", _nextPage),
+          _continueBtn("Get Started", _nextPage),
           TextButton(
             onPressed: () {}, // Handle Sign In
             child: const Text("Already have an account? Sign in", style: TextStyle(color: Colors.deepPurple)),
@@ -104,7 +117,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Feature slide
-  Widget _buildFeatureSlide(Map<String, dynamic> feature) {
+  Widget _featSlides(Map<String, dynamic> feature) {
     return Center(
       child: Container(
         margin: const EdgeInsets.all(24),
@@ -130,9 +143,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            _buildPageIndicator(),
+            _slideIndicator(),
             const SizedBox(height: 32),
-            _buildWideButton("Continue", _nextPage),
+            _continueBtn("Continue", _nextPage),
           ],
         ),
       ),
@@ -140,16 +153,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Phone age screen
-  Widget _buildAgeScreen() {
-    return _buildFormWrapper(
+  Widget _phoneAgeScreen() {
+    return _onboardingWrapper(
       title: "How old is your phone?",
       subtitle: "This helps us estimate your battery health",
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildDropdown("Years", _selYears, 11, (v) => setState(() => _selYears = v!)),
+          _dropdown("Years", _selYears, 11, (v) => setState(() => _selYears = v!)),
           const SizedBox(width: 20),
-          _buildDropdown("Months", _selMonths, 12, (v) => setState(() => _selMonths = v!)),
+          _dropdown("Months", _selMonths, 12, (v) => setState(() => _selMonths = v!)),
         ],
       ),
       onContinue: _nextPage,
@@ -157,8 +170,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Charging habits screen
-  Widget _buildHabitScreen() {
-    return _buildFormWrapper(
+  Widget _cyclesScreen() {
+    return _onboardingWrapper(
       title: "How do you typically charge your phone?",
       subtitle: "One charge cycle = 100% total battery used, even if topped up in smaller amounts.",
       child: TextField(
@@ -174,10 +187,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // Reusable components
+  // Sign up screen
+  Widget _signUpScreen() {
+    return _onboardingWrapper(
+      title: "Create your account",
+      subtitle: "Join Techare to save your device history",
+      child: Column(
+        children: [
+          _textFieldInput(_name, "Name", Icons.person_outline),
+          const SizedBox(height: 16),
+          _textFieldInput(_email, "Email", Icons.email_outlined),
+          const SizedBox(height: 16),
+          _textFieldInput(_password, "Password", Icons.lock_outline, obscure: true),
+        ],
+      ),
+      onContinue: _completeOnboarding,
+      buttonText: "Create Account",
+    );
+  }
 
-  // Shared form wrapper for data collection screens
-  Widget _buildFormWrapper({required String title, required String subtitle, required Widget child, required VoidCallback onContinue, String buttonText = "Continue"}) {
+  // Reusable component
+  // Shared form wrapper for data screens
+  Widget _onboardingWrapper({required String title, required String subtitle, required Widget child, required VoidCallback onContinue, String buttonText = "Continue"}) {
     return Padding(
       padding: const EdgeInsets.all(24.0), // Padding
       child: Column(
@@ -190,14 +221,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 40),
           child,
           const SizedBox(height: 40),
-          _buildWideButton(buttonText, onContinue),
+          _continueBtn(buttonText, onContinue),
         ],
       ),
     );
   }
 
   // Full-width button
-  Widget _buildWideButton(String text, VoidCallback onPressed) {
+  Widget _continueBtn(String text, VoidCallback onPressed) {
     return SizedBox(
       width: double.infinity,
       height: 56,
@@ -213,7 +244,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Page indicator dots
-  Widget _buildPageIndicator() {
+  Widget _slideIndicator() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(3, (index) {
@@ -233,7 +264,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Years/Months dropdown
-  Widget _buildDropdown(String label, int value, int count, ValueChanged<int?> onChanged) {
+  Widget _dropdown(String label, int value, int count, ValueChanged<int?> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -244,6 +275,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           onChanged: onChanged,
         ),
       ],
+    );
+  }
+
+  // Text input field with icon
+  Widget _textFieldInput(TextEditingController controller, String label, IconData icon, {bool obscure = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: const OutlineInputBorder(),
+      ),
     );
   }
 }
