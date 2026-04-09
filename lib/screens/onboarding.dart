@@ -59,6 +59,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           _buildWelcomeScreen(),
           ..._features.map((f) => _buildFeatureSlide(f)).toList(),
+          _buildAgeScreen(),
         ],
       ),
     );
@@ -137,6 +138,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  // Phone age screen
+  Widget _buildAgeScreen() {
+    return _buildFormWrapper(
+      title: "How old is your phone?",
+      subtitle: "This helps us estimate your battery health",
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildDropdown("Years", _selYears, 11, (v) => setState(() => _selYears = v!)),
+          const SizedBox(width: 20),
+          _buildDropdown("Months", _selMonths, 12, (v) => setState(() => _selMonths = v!)),
+        ],
+      ),
+      onContinue: _nextPage,
+    );
+  }
+
   // Reusable components
 
   // Shared form wrapper for data collection screens
@@ -192,6 +210,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         );
       }),
+    );
+  }
+
+  // Years/Months dropdown
+  Widget _buildDropdown(String label, int value, int count, ValueChanged<int?> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.black54)),
+        DropdownButton<int>(
+          value: value,
+          items: List.generate(count, (i) => i).map((v) => DropdownMenuItem(value: v, child: Text("$v"))).toList(),
+          onChanged: onChanged,
+        ),
+      ],
     );
   }
 }
