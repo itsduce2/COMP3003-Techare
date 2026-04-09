@@ -9,7 +9,6 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = 0;
 
   void _nextPage() {
     _pageController.nextPage(
@@ -18,16 +17,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  Widget _buildFeatureSlide(String title, String desc, Color color) {
+    return Container(
+      color: color.withOpacity(0.1),
+      padding: const EdgeInsets.all(40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Text(desc, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 40),
+          ElevatedButton(onPressed: _nextPage, child: const Text("Next")),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blueGrey[50],
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
-        onPageChanged: (int page) => setState(() => _currentPage = page),
         children: [
-          Container(),
+          // Slide 1
+          Center(
+            child: ElevatedButton(onPressed: _nextPage, child: const Text("Get Started")),
+          ),
+          // Slide 2
+          _buildFeatureSlide("Track Health", "Monitor your battery cycles effectively.", Colors.blue),
+          // Slide 3
+          _buildFeatureSlide("Smart Alerts", "Get notified when your battery needs care.", Colors.purple),
         ],
       ),
     );
