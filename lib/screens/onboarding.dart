@@ -60,6 +60,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           _buildWelcomeScreen(),
           ..._features.map((f) => _buildFeatureSlide(f)).toList(),
           _buildAgeScreen(),
+          _buildHabitScreen(),
         ],
       ),
     );
@@ -150,6 +151,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(width: 20),
           _buildDropdown("Months", _selMonths, 12, (v) => setState(() => _selMonths = v!)),
         ],
+      ),
+      onContinue: _nextPage,
+    );
+  }
+
+  // Charging habits screen
+  Widget _buildHabitScreen() {
+    return _buildFormWrapper(
+      title: "How do you typically charge your phone?",
+      subtitle: "One charge cycle = 100% total battery used, even if topped up in smaller amounts.",
+      child: TextField(
+        controller: _phoneCycles,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: "Cycles per day",
+          hintText: "e.g. 1.2",
+          border: OutlineInputBorder(),
+        ),
       ),
       onContinue: _nextPage,
     );
