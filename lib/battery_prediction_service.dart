@@ -5,6 +5,8 @@ class BatteryPredictionResult {
   final bool canPredict;
   final String insufficientDataMessage;
   final double currentExpectedCapacity;
+  final double predicted1Month;
+  final double predicted3Months;
   final double predicted6Months;
   final double predicted12Months;
   final int estimatedCycles;
@@ -15,6 +17,8 @@ class BatteryPredictionResult {
     required this.canPredict,
     required this.insufficientDataMessage,
     required this.currentExpectedCapacity,
+    required this.predicted1Month,
+    required this.predicted3Months,
     required this.predicted6Months,
     required this.predicted12Months,
     required this.estimatedCycles,
@@ -25,10 +29,10 @@ class BatteryPredictionResult {
 
 class BatteryPredictionService {
 
-  // nasa linear regression coefficients (derived from NASA Li-ion dataset)
-  // validated against Apple spec: ~81% at 500 cycles (Apple states 80%)
-  // intercept anchored to 1.0 so cycle 0 = 100%
+  // nasa linear regression coefficients from nasa Li-ion dataset
   static const double _nasaSlope = -0.00038;
+
+  // intercept set to 1.0 so cycle 0 = 100%
   static const double _nasaIntercept = 1.0;
 
   // main prediction method - reads phone_age and charging_habit from SharedPreferences
@@ -44,6 +48,8 @@ class BatteryPredictionService {
         canPredict: false,
         insufficientDataMessage: 'Please set your phone age and charging habits in Settings to unlock battery predictions.',
         currentExpectedCapacity: 0,
+        predicted1Month: 0,
+        predicted3Months: 0,
         predicted6Months: 0,
         predicted12Months: 0,
         estimatedCycles: 0,
@@ -59,6 +65,8 @@ class BatteryPredictionService {
         canPredict: false,
         insufficientDataMessage: 'Could not read phone age. Please update it in Settings.',
         currentExpectedCapacity: 0,
+        predicted1Month: 0,
+        predicted3Months: 0,
         predicted6Months: 0,
         predicted12Months: 0,
         estimatedCycles: 0,
@@ -67,6 +75,7 @@ class BatteryPredictionService {
       );
     }
 
+    // convert age to total days
     final years = int.parse(ageMatch.group(1)!);
     final months = int.parse(ageMatch.group(2)!);
     final totalDays = (years * 365) + (months * 30);
@@ -80,10 +89,15 @@ class BatteryPredictionService {
     // calculate current expected capacity
     final currentCapacity = _predictCapacity(estimatedCycles);
 
-    // project forward 6 and 12 months
+    // project forward 1, 3, 6 and 12 months
+    final futureCycles1  = estimatedCycles + (30  * cyclesPerDay).round();
+    final futureCycles3  = estimatedCycles + (90  * cyclesPerDay).round();
     final futureCycles6  = estimatedCycles + (180 * cyclesPerDay).round();
     final futureCycles12 = estimatedCycles + (365 * cyclesPerDay).round();
 
+    // calculated prediction using the linear regression equation
+    final pred1  = _predictCapacity(futureCycles1);
+    final pred3  = _predictCapacity(futureCycles3);
     final pred6  = _predictCapacity(futureCycles6);
     final pred12 = _predictCapacity(futureCycles12);
 
@@ -91,6 +105,8 @@ class BatteryPredictionService {
       canPredict: true,
       insufficientDataMessage: '',
       currentExpectedCapacity: currentCapacity,
+      predicted1Month: pred1,
+      predicted3Months: pred3,
       predicted6Months: pred6,
       predicted12Months: pred12,
       estimatedCycles: estimatedCycles,
@@ -107,14 +123,14 @@ class BatteryPredictionService {
     return ((_nasaSlope * cycles + _nasaIntercept) * 100).clamp(0.0, 100.0);
   }
 
-  // confidence is medium if cycles per day is a round number (less precise)
-  // high if user has entered a decimal (more precise)
+  // confidence is medium if cycles per day is a round number
+  // high if user has entered cycles to a decimal
   static String _confidenceLabel(double cyclesPerDay) {
     if (cyclesPerDay == cyclesPerDay.roundToDouble()) return 'Medium';
     return 'High';
   }
 
-  // builds a recommendation based on projected capacity
+  // recommendation based on est* capacity
   static String _buildRecommendation({
     required double currentCapacity,
     required double pred12,

@@ -1,7 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
-
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
@@ -10,10 +9,16 @@ class NotificationService {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings settings =
+    const InitializationSettings initializationSettings =
         InitializationSettings(android: androidSettings);
 
-    await _plugin.initialize(settings: settings);
+    // FIX: Added 'settings:' name here
+    await _plugin.initialize(
+      settings: initializationSettings, 
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // Handle notification tap here
+      },
+    );
   }
 
   // request permission from the user (Android 13+)
@@ -42,6 +47,13 @@ class NotificationService {
     const NotificationDetails details =
         NotificationDetails(android: androidDetails);
 
-    await _plugin.show(id: id, title: title, body: body, notificationDetails: details);
+    // Added parameter names (id:, title:, body:, notificationDetails:)
+    // await to ensure notification is shown before method returns
+    await _plugin.show(
+      id: id, 
+      title: title, 
+      body: body, 
+      notificationDetails: details,
+    );
   }
 }
