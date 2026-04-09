@@ -47,13 +47,6 @@ class NotificationService {
     const NotificationDetails details =
         NotificationDetails(android: androidDetails);
 
-    // Added parameter names (id:, title:, body:, notificationDetails:)
-    // await to ensure notification is shown before method returns
-    await _plugin.show(
-      id: id, 
-      title: title, 
-      body: body, 
-      notificationDetails: details,
-    );
+    await _plugin.show(id: id, title: title, body: body, notificationDetails: details);
   }
 }

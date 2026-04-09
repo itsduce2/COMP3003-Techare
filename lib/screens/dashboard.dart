@@ -75,6 +75,8 @@ class _DashboardState extends State<Dashboard> {
   existing.insert(0, newEntry);
   await prefs.setStringList('previous_results', existing);
   await prefs.setString('last_battery_health', _batteryHealth);
+  await prefs.setString('last_storage_percent', _storagePercent.toString());
+  await prefs.setString('last_battery_temperature', _batteryTemperature);
 }
 
   Future<void> _handleDiagnostic() async {

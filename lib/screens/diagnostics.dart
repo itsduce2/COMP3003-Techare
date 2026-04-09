@@ -111,6 +111,8 @@ class DiagnosticsScreenState extends State<DiagnosticsScreen> {
     };
 
     await prefs.setString('last_battery_health', _batteryHealth);
+    await prefs.setString('last_storage_percent', _storagePercent.toString());
+    await prefs.setString('last_battery_temperature', _batteryTemperature);
 
     // LIFO for scan results
     _previousResults.insert(0, newEntry);
