@@ -436,9 +436,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: const Text('Sign Out', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                       onTap: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-                        );
+                        //Navigator.of(context).pushReplacement(
+                         // MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+                        //);
                       },
                     ),
                 ],
