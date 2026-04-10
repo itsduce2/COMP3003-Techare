@@ -109,7 +109,7 @@ Widget build(BuildContext context) {
                   Positioned(
                     left:0,
                     child:  Opacity(opacity: _isCharging ? 1.0 : 0.0, 
-                    child: const Icon(Icons.bolt, size: 48, color: Colors.yellow  ),
+                    child: const Icon(Icons.bolt, size: 48, color: Colors.black),
                     )
                   )
                 ],
@@ -123,7 +123,7 @@ Widget build(BuildContext context) {
             children: [
               Text(
                 "Cycles: ${_cycle.toStringAsFixed(1)}",
-                style: TextStyle(fontSize: 28),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               if (_isComplete)
@@ -212,7 +212,7 @@ class BatteryPainter extends CustomPainter {
       Paint()
         ..color = Colors.black
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 12,
+        ..strokeWidth = 6,
     );
 
     //battery nub
@@ -223,9 +223,19 @@ class BatteryPainter extends CustomPainter {
       ),
       Paint()..color = Colors.black,
     );
-  }
 
-  
+    //battery fill based on charge level
+    final fillWidth = (size.width - 20) * charge;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+      Rect.fromLTWH(10, 10, fillWidth, size.height - 20),
+      const Radius.circular(12),
+      ),
+      Paint()
+      ..color = Colors.green
+      ..style = PaintingStyle.fill,
+    );
+  } 
 
   //repaint when charge percent changes
   @override
