@@ -129,6 +129,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Align(
+              alignment: Alignment.topLeft,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, size: 20),
+                onPressed: _prevPage,
+              ),
+            ),
             Icon(feature['icon'], size: 80, color: Colors.deepPurple),
             const SizedBox(height: 32),
             Text(
@@ -191,7 +198,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _signUpScreen() {
     return _onboardingWrapper(
       title: "Create your account",
-      subtitle: "Join Techare to save your device history",
+      subtitle: "Join Techare to increase your device's lifetime",
       child: Column(
         children: [
           _textFieldInput(_name, "Name", Icons.person_outline),
@@ -207,6 +214,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Reusable component
+  void _prevPage() {
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 300), 
+      curve: Curves.easeInOut,
+    );
+  }
+
   // Shared form wrapper for data screens
   Widget _onboardingWrapper({required String title, required String subtitle, required Widget child, required VoidCallback onContinue, String buttonText = "Continue"}) {
     return Padding(
@@ -215,6 +229,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          IconButton(
+            padding: EdgeInsets.zero,
+            alignment: Alignment.centerLeft,
+            icon: const Icon(Icons.arrow_back, color: Colors.black54),
+            onPressed: _prevPage,
+          ),
           Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(subtitle, style: const TextStyle(fontSize: 16, color: Colors.black54)),
