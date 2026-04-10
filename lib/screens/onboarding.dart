@@ -210,6 +210,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
       onContinue: _completeOnboarding,
       buttonText: "Create Account",
+      additionalChildren: [
+        Center(
+          child: TextButton(
+            onPressed: () {}, // Handle Sign In
+            child: const Text("Already have an account? Sign in", style: TextStyle(color: Colors.deepPurple)),
+          ),
+        )
+      ],
     );
   }
 
@@ -222,7 +230,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Shared form wrapper for data screens
-  Widget _onboardingWrapper({required String title, required String subtitle, required Widget child, required VoidCallback onContinue, String buttonText = "Continue"}) {
+  Widget _onboardingWrapper({required String title, required String subtitle, required Widget child, required VoidCallback onContinue, String buttonText = "Continue", List<Widget>? additionalChildren}) {
     return Padding(
       padding: const EdgeInsets.all(24.0), // Padding
       child: Column(
@@ -242,6 +250,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child,
           const SizedBox(height: 40),
           _continueBtn(buttonText, onContinue),
+          if (additionalChildren != null) ...additionalChildren,
         ],
       ),
     );
