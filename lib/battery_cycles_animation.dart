@@ -13,7 +13,6 @@ class _BatteryCyclesAnimationState extends State<BatteryCyclesAnimation>
   
   late AnimationController _controller;
 
-  //variables for 
   double _charge = 100;
   double _cycle = 0.0;
   bool _isCharging = false;
@@ -74,18 +73,25 @@ Widget build(BuildContext context) {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          
+          //title
           const Text(
             "Understanding Battery Cycles",
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
+          
+          //padding
           const SizedBox(height: 16),
+          
+          //description text
           const Text(
             "Watch how battery cycles accumulate as you use and charge your device.",
             style: TextStyle(fontSize: 16, color: Colors.black),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
+          
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -93,10 +99,14 @@ Widget build(BuildContext context) {
               Stack(
                 alignment: Alignment.center,
                 children: [
+                  
+                  //battery outline and fill
                   CustomPaint(
                     size: const Size(260, 130),
                     painter: BatteryPainter(charge: _charge / 100),
                   ),
+                  
+                  //charge percentage text
                   Text(
                     "${_charge.toInt()}%",
                     style: const TextStyle(
@@ -106,6 +116,7 @@ Widget build(BuildContext context) {
                     ),
                   ),
 
+                  //bolt icon (appears when charging)
                   Positioned(
                     left:0,
                     child:  Opacity(opacity: _isCharging ? 1.0 : 0.0, 
@@ -117,7 +128,11 @@ Widget build(BuildContext context) {
               const SizedBox(width: 40),
             ],
           ),
+
+          //padding
           const SizedBox(height: 40),
+
+          //cycle count and refresh button
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -133,9 +148,11 @@ Widget build(BuildContext context) {
                 ),
             ],
           ),
-          // Refresh button shows when complete, continue button always shows
           
+          //padding
           const SizedBox(height: 16),
+
+          //continue button
           SizedBox(
             width: double.infinity,
             height: 56,
@@ -196,6 +213,7 @@ Widget build(BuildContext context) {
 
 }
 
+//painter for the battery outline and fill level
 class BatteryPainter extends CustomPainter {
   final double charge;
   const BatteryPainter({required this.charge});

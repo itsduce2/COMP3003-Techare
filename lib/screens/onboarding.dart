@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:techare_application_comp3003/battery_cycles_animation.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -15,7 +16,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // onboarding variables
   int _selYears = 0;
   int _selMonths = 0;
-  final TextEditingController _phoneCycles = TextEditingController();
+  double _phoneCycles = 0.0;
   final TextEditingController _name = TextEditingController();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
@@ -53,7 +54,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     //save device profile values
     await prefs.setString('phone_age', '${_selYears}y ${_selMonths}m');
     await prefs.setString('phone_age_set_date', DateTime.now().toIso8601String());
-    await prefs.setString('charging_habit', _phoneCycles.text.trim());
+    await prefs.setString('charging_habit', _phoneCycles.toStringAsFixed(1));
 
     if (!mounted) return;
     //Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
@@ -72,6 +73,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           _welcomeScreen(),
           ..._features.map((f) => _featSlides(f)).toList(),
           _phoneAgeScreen(),
+          BatteryCyclesAnimation(onContinue: _nextPage),
           _cyclesScreen(),
           _signUpScreen(),
         ],
@@ -177,22 +179,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Charging habits screen
-  Widget _cyclesScreen() {
-    return _onboardingWrapper(
-      title: "How do you typically charge your phone?",
-      subtitle: "One charge cycle = 100% total battery used, even if topped up in smaller amounts.",
-      child: TextField(
-        controller: _phoneCycles,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          labelText: "Cycles per day",
-          hintText: "e.g. 1.2",
-          border: OutlineInputBorder(),
+ Widget _cyclesScreen() {
+  return _onboardingWrapper(
+    title: "How do you typically charge your phone?",
+    subtitle: "One charge cycle = 100% total battery used, even if topped up in smaller amounts.",
+    child: Column(
+      children: [
+        Text(
+          "${_phoneCycles.toStringAsFixed(1)} cycles per day",
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.deepPurple),
         ),
-      ),
-      onContinue: _nextPage,
-    );
-  }
+        Slider(
+          value: _phoneCycles,
+          min: 0.5,
+          max: 5.0,
+          divisions: 9,
+          activeColor: Colors.deepPurple,
+          onChanged: (v) => setState(() => _phoneCycles = double.parse(v.toStringAsFixed(1))),
+        ),
+      ],
+    ),
+    onContinue: _nextPage,
+  );
+}
 
   // Sign up screen
   Widget _signUpScreen() {
