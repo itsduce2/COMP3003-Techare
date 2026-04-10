@@ -35,22 +35,29 @@ class _BatteryCyclesAnimationState extends State<BatteryCyclesAnimation>
     //discharge 100% to 50% + cycle 0 to 0.5
     await _animateTo(chargeLvl: 50, batteryCycle: 0.5);
     await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+
 
     //charge 50% to 75% + cycle remains
     setState(() => _isCharging = true);
     await _animateTo(chargeLvl: 75, batteryCycle: 0.5);
     await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
     setState(() => _isCharging = false);
 
     //discharge 75% to 25% + cycle 0.5 to 1.0
     await _animateTo(chargeLvl: 25, batteryCycle: 1.0);
     await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+
 
     //reset back to 100%
     setState(() => _isCharging = true);
     await _animateTo(chargeLvl: 100, batteryCycle: 1.0);
     await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
     setState(() => _isCharging = false);
+    if (!mounted) return;
     setState(() => _isComplete = true);
   }
 

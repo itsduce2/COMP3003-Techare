@@ -4,6 +4,7 @@ import '../battery_service.dart';
 import '../storage_service.dart';
 import '../battery_prediction_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../screens/perdiction.dart';
 
 class DiagnosticsScreen extends StatefulWidget {
   const DiagnosticsScreen({super.key});
@@ -161,174 +162,16 @@ class DiagnosticsScreenState extends State<DiagnosticsScreen> {
   // handling for 'Get AI Prediction' button
   Future<void> _handlePrediction() async {
     setState(() => _isPredicting = true);
+    await Future.delayed(const Duration(seconds: 2));    
     final result = await BatteryPredictionService.predict();
     setState(() => _isPredicting = false);
-    _showPredictionPopup(result);
+    if (!mounted) return;
+Navigator.push(
+  context,
+  MaterialPageRoute(builder: (_) => Prediction(result: result)),
+);
   }
 
- // popup showing the AI prediction result
-void _showPredictionPopup(BatteryPredictionResult result) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Row(
-        children: const [
-          Icon(Icons.battery_charging_full, color: Colors.deepPurpleAccent),
-          SizedBox(width: 8),
-          Text('AI Battery Prediction'),
-        ],
-      ),
-      content: SingleChildScrollView(
-        child: result.canPredict
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  // confidence banner
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.deepPurple[50],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Based on approximately ${result.estimatedCycles} estimated charge cycles. Confidence: ${result.confidenceLabel}.',
-                      style: const TextStyle(fontSize: 13, color: Colors.deepPurple),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // current capacity
-                  Row(
-                    children: [
-                      const Icon(Icons.battery_std, color: Colors.deepPurpleAccent, size: 20),
-                      const SizedBox(width: 8),
-                      const Text('Current estimated capacity', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Your battery is estimated to be at ${result.currentExpectedCapacity.toStringAsFixed(1)}% of its original capacity. Batteries below 80% may noticeably affect your phone\'s performance and battery life.',
-                    style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // projections
-                  Row(
-                    children: [
-                      const Icon(Icons.trending_down, color: Colors.deepPurpleAccent, size: 20),
-                      const SizedBox(width: 8),
-                      const Text('Future projections', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  _predictionRow('In 6 months', result.predicted6Months),
-                  const SizedBox(height: 4),
-                  _predictionRow('In 12 months', result.predicted12Months),
-
-                  const SizedBox(height: 16),
-
-                  // recommendation
-                  Row(
-                    children: [
-                      const Icon(Icons.lightbulb_outline, color: Colors.deepPurpleAccent, size: 20),
-                      const SizedBox(width: 8),
-                      const Text('Recommendation', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    result.recommendation,
-                    style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // what is a charge cycle
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Row(
-                          children: [
-                            Icon(Icons.info_outline, size: 16, color: Colors.black54),
-                            SizedBox(width: 6),
-                            Text('What is a charge cycle?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                          ],
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          'One charge cycle is completed when you have used 100% of your battery\'s capacity in total — but not necessarily in one go. For example, using 75% one day and 25% the next counts as one full cycle.',
-                          style: TextStyle(fontSize: 12, color: Colors.black54, height: 1.4),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // disclaimer
-                  const Text(
-                    'These are estimates based on the NASA Li-ion Battery Aging Dataset and your device settings. Actual battery health may vary depending on usage, temperature, and charging habits.',
-                    style: TextStyle(fontSize: 11, color: Colors.black38, height: 1.4),
-                  ),
-                ],
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.info_outline, color: Colors.deepPurpleAccent, size: 40),
-                  const SizedBox(height: 12),
-                  Text(
-                    result.insufficientDataMessage,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.4),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-      ),
-      actions: [
-        FilledButton(
-          onPressed: () => Navigator.pop(context),
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.deepPurpleAccent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-          child: const Text('Close', style: TextStyle(color: Colors.white)),
-        ),
-      ],
-    ),
-  );
-}
-
-// helper row for projection values with colour coding
-Widget _predictionRow(String label, double value) {
-  Color color = Colors.green;
-  if (value < 80) {
-    color = Colors.red;
-  } else if (value < 85) color = Colors.orange;
-
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Text(label, style: const TextStyle(fontSize: 13, color: Colors.black87)),
-      Text(
-        '${value.toStringAsFixed(1)}%',
-        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color),
-      ),
-    ],
-  );
-}
   // handling for 'Run Diagnostics' button
   Future<void> _handleDiagnostic() async {
     // spinner and delay
