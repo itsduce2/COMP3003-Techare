@@ -82,7 +82,7 @@ Widget build(BuildContext context) {
           const SizedBox(height: 16),
           const Text(
             "Watch how battery cycles accumulate as you use and charge your device.",
-            style: TextStyle(fontSize: 16, color: Colors.black54),
+            style: TextStyle(fontSize: 16, color: Colors.black),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
@@ -109,7 +109,7 @@ Widget build(BuildContext context) {
                   Positioned(
                     left:0,
                     child:  Opacity(opacity: _isCharging ? 1.0 : 0.0, 
-                    child: const Icon(Icons.bolt, size: 48, color: Colors.deepPurple  ),
+                    child: const Icon(Icons.bolt, size: 48, color: Colors.yellow  ),
                     )
                   )
                 ],
@@ -118,17 +118,23 @@ Widget build(BuildContext context) {
             ],
           ),
           const SizedBox(height: 40),
-          Text(
-            "Cycles: ${_cycle.toStringAsFixed(1)}",
-            style: const TextStyle(fontSize: 24, color: Colors.black54),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Cycles: ${_cycle.toStringAsFixed(1)}",
+                style: TextStyle(fontSize: 28),
+                textAlign: TextAlign.center,
+              ),
+              if (_isComplete)
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.deepPurple),
+                  onPressed: _restartAnimation,
+                ),
+            ],
           ),
-          const SizedBox(height: 40),
           // Refresh button shows when complete, continue button always shows
-          if (_isComplete)
-            IconButton(
-              icon: const Icon(Icons.refresh, size: 32, color: Colors.deepPurple),
-              onPressed: _restartAnimation,
-            ),
+          
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
