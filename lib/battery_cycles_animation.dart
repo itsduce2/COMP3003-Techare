@@ -13,6 +13,11 @@ class _BatteryCyclesAnimationState extends State<BatteryCyclesAnimation>
   
   late AnimationController _controller;
 
+  //variables for 
+  double _charge = 100;
+  double _cycle = 0.0;
+  bool _isCharging = false;
+
 
   //initialise animation controller
   @override
@@ -22,6 +27,31 @@ class _BatteryCyclesAnimationState extends State<BatteryCyclesAnimation>
       vsync: this,
       duration: const Duration(seconds: 2),
     );
+    Future.delayed(const Duration(seconds: 1), _runSequence);
+  }
+
+  //runs the animation sequence
+  Future<void> _runSequence() async {
+
+    //discharge 100% to 50% + cycle 0 to 0.5
+    await _animateTo(chargeLvl: 50, batteryCycle: 0.5);
+    await Future.delayed(const Duration(seconds: 1));
+
+    //charge 50% to 75% + cycle remains
+    setState(() => _isCharging = true);
+    await _animateTo(chargeLvl: 75, batteryCycle: 0.5);
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _isCharging = false);
+
+    //discharge 75% to 25% + cycle 0.5 to 1.0
+    await _animateTo(chargeLvl: 25, batteryCycle: 1.0);
+    await Future.delayed(const Duration(seconds: 1));
+
+    //reset back to 100%
+    setState(() => _isCharging = true);
+    await _animateTo(chargeLvl: 100, batteryCycle: 1.0);
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _isCharging = false);
   }
 
   //runs when the animation is complete
