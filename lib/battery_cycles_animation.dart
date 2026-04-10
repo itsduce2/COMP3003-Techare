@@ -208,7 +208,18 @@ class BatteryPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 12,
     );
+
+    //battery nub
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(size.width, size.height * 0.3, 15, size.height * 0.4),
+        const Radius.circular(5),
+      ),
+      Paint()..color = Colors.black,
+    );
   }
+
+  
 
   //repaint when charge percent changes
   @override
