@@ -16,7 +16,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // onboarding variables
   int _selYears = 0;
   int _selMonths = 0;
-  double _phoneCycles = 0.0;
+  double _phoneCycles = 0.5;
   final TextEditingController _name = TextEditingController();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
