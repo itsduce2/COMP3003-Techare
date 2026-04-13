@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:techare_application_comp3003/battery_cycles_animation.dart';
+import 'login.dart';
+import '../login_service.dart';
+import '../navigation.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -52,18 +55,46 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // Save collected data and finish onboarding
-  Future<void> _completeOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    //save device profile values
-    await prefs.setString('phone_age', '${_selYears}y ${_selMonths}m');
-    await prefs.setString('phone_age_set_date', DateTime.now().toIso8601String());
-    await prefs.setString('charging_habit', _phoneCycles.toStringAsFixed(1));
-    await prefs.setString('phone_brand', _selBrand);
-
-    if (!mounted) return;
-    //Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+// Save collected data and finish onboarding
+Future<void> _completeOnboarding() async {
+  // basic validation
+  if (_name.text.trim().isEmpty || _email.text.trim().isEmpty || _password.text.trim().isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please fill in all fields.')),
+    );
+    return;
   }
+
+  // register the new account
+  final success = await LoginService.register(
+    email: _email.text.trim().toLowerCase(),
+    password: _password.text.trim(),
+    name: _name.text.trim(),
+  );
+
+  if (!success) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('An account with this email already exists.')),
+    );
+    return;
+  }
+
+  // save device profile values under the new user's namespace
+  final email      = _email.text.trim().toLowerCase();
+  final prefs      = await SharedPreferences.getInstance();
+  await prefs.setString(LoginService.keyFor(email, 'phone_age'), '${_selYears}y ${_selMonths}m');
+  await prefs.setString(LoginService.keyFor(email, 'phone_age_set_date'), DateTime.now().toIso8601String());
+  await prefs.setString(LoginService.keyFor(email, 'charging_habit'), _phoneCycles.toStringAsFixed(1));
+  await prefs.setString(LoginService.keyFor(email, 'phone_brand'), _selBrand);
+
+  if (!mounted) return;
+
+  // navigate to the main app
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute(builder: (_) => const BottomNavigation()),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +147,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 48),
           _continueBtn("Get Started", _nextPage),
           TextButton(
-            onPressed: () {}, // Handle Sign In
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            }, // Handle Sign In
             child: const Text("Already have an account? Sign in", style: TextStyle(color: Colors.deepPurple)),
           )
         ],
@@ -250,7 +285,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       additionalChildren: [
         Center(
           child: TextButton(
-            onPressed: () {}, // Handle Sign In
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            }, // Handle Sign In
             child: const Text("Already have an account? Sign in", style: TextStyle(color: Colors.deepPurple)),
           ),
         )

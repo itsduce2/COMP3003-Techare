@@ -986,6 +986,7 @@ class _TutorialStepsDialogState extends State<_TutorialStepsDialog> {
             }
           },
           style: FilledButton.styleFrom(
+            
             backgroundColor: Colors.deepPurpleAccent,
           ),
           child: Text(isLast ? 'Finish' : 'Next'),

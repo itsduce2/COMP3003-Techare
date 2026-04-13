@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:techare_application_comp3003/login_service.dart';
 import '../device_info_service.dart';
 import '../battery_service.dart';
 import '../storage_service.dart';
@@ -64,16 +65,18 @@ class DiagnosticsScreenState extends State<DiagnosticsScreen> {
   // loads the last scan date from storage
   Future<void> _loadLastScanDate() async {
     final prefs = await SharedPreferences.getInstance();
+    final key = await LoginService.key('last_scan_date');
     setState(() {
-      _lastScanDate = prefs.getString('last_scan_date') ?? 'Never';
+      _lastScanDate = prefs.getString(key) ?? 'Never';
     });
   }
 
   // saves the current scan date to now 
   Future<void> _saveLastScanDate() async {
     final prefs = await SharedPreferences.getInstance();
+    final key = await LoginService.key('last_scan_date');
     String now = "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
-    await prefs.setString('last_scan_date', now);
+    await prefs.setString(key, now);
     setState(() {
       _lastScanDate = now;
     });
@@ -82,7 +85,8 @@ class DiagnosticsScreenState extends State<DiagnosticsScreen> {
   // loads the previous scan results from storage
   Future<void> _loadPreviousResults() async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String>? stored = prefs.getStringList('previous_results');
+    final key = await LoginService.key('previous_results');
+    final List<String>? stored = prefs.getStringList(key);
     if (stored != null) {
       setState(() {
         _previousResults = stored.map((entry) {
@@ -101,7 +105,11 @@ class DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
   // saves the current scan result to the history
   Future<void> _savePreviousResult() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs          = await SharedPreferences.getInstance();
+    final resultsKey     = await LoginService.key('previous_results');
+    final healthKey      = await LoginService.key('last_battery_health');
+    final storageKey     = await LoginService.key('last_storage_percent');
+    final tempKey        = await LoginService.key('last_battery_temperature');
     final String now = "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
     final Map<String, String> newEntry = {
       'date': now,
@@ -110,25 +118,24 @@ class DiagnosticsScreenState extends State<DiagnosticsScreen> {
       'storage': _storageText,
       'temperature': _batteryTemperature,
     };
-
-    await prefs.setString('last_battery_health', _batteryHealth);
-    await prefs.setString('last_storage_percent', _storagePercent.toString());
-    await prefs.setString('last_battery_temperature', _batteryTemperature);
-
-    // LIFO for scan results
+    await prefs.setString(healthKey, _batteryHealth);
+    await prefs.setString(storageKey, _storagePercent.toString());
+    await prefs.setString(tempKey, _batteryTemperature);
     _previousResults.insert(0, newEntry);
     final List<String> encoded = _previousResults.map((e) =>
       '${e['date']}|${e['status']}|${e['battery']}|${e['storage']}|${e['temperature']}'
     ).toList();
-    await prefs.setStringList('previous_results', encoded);
+    await prefs.setStringList(resultsKey, encoded);
     setState(() {});
   }
 
   // clears diagnostic history
   Future<void> _clearAllResults() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('previous_results');
-    await prefs.remove('last_scan_date');
+    final prefs      = await SharedPreferences.getInstance();
+    final resultsKey = await LoginService.key('previous_results');
+    final dateKey    = await LoginService.key('last_scan_date');
+    await prefs.remove(resultsKey);
+    await prefs.remove(dateKey);
     setState(() {
       _previousResults = [];
       _lastScanDate = 'Never';

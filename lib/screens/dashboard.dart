@@ -3,6 +3,7 @@ import '../device_info_service.dart';
 import '../battery_service.dart';
 import '../storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../login_service.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -52,32 +53,38 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> _loadLastScanDate() async {
     final prefs = await SharedPreferences.getInstance();
+    final key = await LoginService.key('last_scan_date');
     setState(() {
-      _lastScanDate = prefs.getString('last_scan_date') ?? 'Never';
+      _lastScanDate = prefs.getString(key) ?? 'Never';
     });
   }
 
   Future<void> _saveLastScanDate() async {
     final prefs = await SharedPreferences.getInstance();
+    final key = await LoginService.key('last_scan_date');
     String now = "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
-    await prefs.setString('last_scan_date', now);
+    await prefs.setString(key, now);
     setState(() {
       _lastScanDate = now;
     });
   }
 
   Future<void> _savePreviousResult() async {
-  final prefs = await SharedPreferences.getInstance();
-  final String now = "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
-  final String newEntry =
-      '$now|$_healthStatus|$_batteryLevel% ($_batteryHealth)|$_storageText|$_batteryTemperature';
-  final List<String> existing = prefs.getStringList('previous_results') ?? [];
-  existing.insert(0, newEntry);
-  await prefs.setStringList('previous_results', existing);
-  await prefs.setString('last_battery_health', _batteryHealth);
-  await prefs.setString('last_storage_percent', _storagePercent.toString());
-  await prefs.setString('last_battery_temperature', _batteryTemperature);
-}
+    final prefs = await SharedPreferences.getInstance();
+    final resultsKey     = await LoginService.key('previous_results');
+    final healthKey      = await LoginService.key('last_battery_health');
+    final storageKey     = await LoginService.key('last_storage_percent');
+    final tempKey        = await LoginService.key('last_battery_temperature');
+    final String now = "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
+    final String newEntry =
+        '$now|$_healthStatus|$_batteryLevel% ($_batteryHealth)|$_storageText|$_batteryTemperature';
+    final List<String> existing = prefs.getStringList(resultsKey) ?? [];
+    existing.insert(0, newEntry);
+    await prefs.setStringList(resultsKey, existing);
+    await prefs.setString(healthKey, _batteryHealth);
+    await prefs.setString(storageKey, _storagePercent.toString());
+    await prefs.setString(tempKey, _batteryTemperature);
+  }
 
   Future<void> _handleDiagnostic() async {
     // Start the loading spinner

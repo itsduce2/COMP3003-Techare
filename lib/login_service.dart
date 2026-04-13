@@ -72,11 +72,14 @@ class LoginService {
   }
 
   // seeds amina's demo account with pre-loaded data on first run
-  static Future<void> seedDemoAccount() async {
+  static Future<void> setDemoAccount() async {
     final prefs = await SharedPreferences.getInstance();
     const email = 'amina@demo.com';
+    
     // only seed if account doesn't already exist
     if (prefs.getString('${email}_password') != null) return;
+
+    // demo account with data
     await prefs.setString('${email}_password', 'demo123');
     await prefs.setString('${email}_name', 'Amina');
     await prefs.setString('${email}_phone_age', '2y 3m');

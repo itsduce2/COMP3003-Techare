@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:techare_application_comp3003/screens/login.dart';
 import 'package:workmanager/workmanager.dart';
 import 'navigation.dart';
 import 'notification_service.dart';
 import 'notifications.dart';
-import 'screens/test.dart';
+//import 'screens/test.dart';
+import 'login_service.dart';
+import 'screens/login.dart';
 //import 'battery_cycles_animation.dart';
 
 // called by WorkManager in the background
@@ -22,6 +25,9 @@ void main() async {
   // initialise notifications
   await NotificationService.initialise();
   await NotificationService.requestPermission();
+
+  //demo account
+  await LoginService.setDemoAccount();
 
   // initialise WorkManager and register 24 hour background task
   await Workmanager().initialize(callbackDispatcher);
@@ -48,7 +54,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       //Screens
-      home: const BottomNavigation(),
+      home: const LoginScreen(),
       //home: BatteryCyclesAnimation(onContinue: () {}),
       //home: const TestScreen(),
     );

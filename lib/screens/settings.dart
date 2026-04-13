@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:techare_application_comp3003/screens/login.dart';
 import 'onboarding.dart';
+import '../login_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -16,6 +18,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _phoneAge = '';
   String _chargingHabit = '';
   String _phoneBrand = '';
+  String _userName = '';
 
   @override
   void initState() {
@@ -25,15 +28,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadDeviceProfile() async {
-    //get saved values from storage
-    final prefs = await SharedPreferences.getInstance();
-    final age = prefs.getString('phone_age') ?? '';
-    final setDate = prefs.getString('phone_age_set_date');
+    final prefs      = await SharedPreferences.getInstance();
+    final ageKey     = await LoginService.key('phone_age');
+    final setDateKey = await LoginService.key('phone_age_set_date');
+    final habitKey   = await LoginService.key('charging_habit');
+    final brandKey   = await LoginService.key('phone_brand');
+    final name       = await LoginService.currentUserName();
+
+    final age     = prefs.getString(ageKey)     ?? '';
+    final setDate = prefs.getString(setDateKey);
+
     setState(() {
-      //update age accounting for elapsed time
-      _phoneAge = _addMonths(age, setDate);
-      _chargingHabit = prefs.getString('charging_habit') ?? '';
-      _phoneBrand = prefs.getString('phone_brand') ?? '';
+      _phoneAge      = _addMonths(age, setDate);
+      _chargingHabit = prefs.getString(habitKey) ?? '';
+      _phoneBrand    = prefs.getString(brandKey)  ?? '';
+      _userName      = name;
     });
   }
 
@@ -46,7 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final match = RegExp(r'(\d+)y (\d+)m').firstMatch(age);
     if (match == null) return age;
 
-    int years = int.parse(match.group(1)!);
+    int years  = int.parse(match.group(1)!);
     int months = int.parse(match.group(2)!);
 
     //parse the date the age was last set
@@ -59,8 +68,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     //carry overflow months into years
     if (months >= 12) {
-      years += months ~/ 12;
-      months = months % 12;
+      years  += months ~/ 12;
+      months  = months % 12;
     }
 
     return '${years}y ${months}m';
@@ -69,11 +78,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Dialog for Phone Age selection
   void _showPhoneAgeDialog() {
     // Parse current display value back into years/months for the dropdowns
-    int selYears = 0;
+    int selYears  = 0;
     int selMonths = 0;
     final match = RegExp(r'(\d+)y (\d+)m').firstMatch(_phoneAge);
     if (match != null) {
-      selYears = int.parse(match.group(1)!);
+      selYears  = int.parse(match.group(1)!);
       selMonths = int.parse(match.group(2)!);
     }
 
@@ -133,14 +142,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    final nav = Navigator.of(context);
-                    final saved = '${selYears}y ${selMonths}m';
-                    final prefs = await SharedPreferences.getInstance();
+                    final nav        = Navigator.of(context);
+                    final saved      = '${selYears}y ${selMonths}m';
+                    final prefs      = await SharedPreferences.getInstance();
+                    final ageKey     = await LoginService.key('phone_age');
+                    final setDateKey = await LoginService.key('phone_age_set_date');
                     // Only reset the set date if the value changed
-                    if (saved != prefs.getString('phone_age')) {
-                      await prefs.setString('phone_age_set_date', DateTime.now().toIso8601String());
+                    if (saved != prefs.getString(ageKey)) {
+                      await prefs.setString(setDateKey, DateTime.now().toIso8601String());
                     }
-                    await prefs.setString('phone_age', saved);
+                    await prefs.setString(ageKey, saved);
                     if (!mounted) return;
                     setState(() {
                       _phoneAge = saved;
@@ -209,10 +220,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             TextButton(
               onPressed: () async {
-                final nav = Navigator.of(context);
-                final saved = controller.text.trim();
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setString('charging_habit', saved);
+                final nav      = Navigator.of(context);
+                final saved    = controller.text.trim();
+                final prefs    = await SharedPreferences.getInstance();
+                final habitKey = await LoginService.key('charging_habit');
+                await prefs.setString(habitKey, saved);
                 if (!mounted) return;
                 setState(() {
                   _chargingHabit = saved;
@@ -259,9 +271,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    final nav = Navigator.of(context);
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setString('phone_brand', selBrand);
+                    final nav      = Navigator.of(context);
+                    final prefs    = await SharedPreferences.getInstance();
+                    final brandKey = await LoginService.key('phone_brand');
+                    await prefs.setString(brandKey, selBrand);
                     if (!mounted) return;
                     setState(() {
                       _phoneBrand = selBrand;
@@ -302,15 +315,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // Greeting column
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
-                        'Hi, Amina 👋',
-                        style: TextStyle(
+                        'Hi, $_userName 👋',
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
+                      const Text(
                         'Here are your settings',
                         style: TextStyle(
                           fontSize: 18,
@@ -370,9 +383,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
-                
-              
-
               ),
             ),
 
@@ -414,7 +424,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     const Divider(height: 1, color: Colors.black12),
 
- 
                     ListTile(
                       title: const Text('Charging Habits', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       subtitle: Text(
@@ -497,16 +506,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                       
-                  const Divider(height: 1, color: Colors.black12), 
-                    ListTile(
-                      title: const Text('Sign Out', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                      onTap: () {
+                  const Divider(height: 1, color: Colors.black12),
+
+                  ListTile(
+                    title: const Text('Sign Out', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                    onTap: () async {
+                      await LoginService.logout();
+                      if (!mounted) return;
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      );
+                    },
+                  ),
+
+                  const Divider(height: 1, color: Colors.black12),
+
+                  // delete account - permanently removes account and all data
+                  ListTile(
+                    title: const Text('Delete Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.red)),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.red),
+                    onTap: () async {
+                      // confirm before deleting
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Delete Account'),
+                          content: const Text('This will permanently delete your account and all your data. This cannot be undone.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirm == true) {
+                        await LoginService.deleteAccount();
+                        if (!mounted) return;
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(builder: (_) => const OnboardingScreen()),
                         );
-                      },
-                    ),
+                      }
+                    },
+                  ),
+
                 ],
               ),
             ),

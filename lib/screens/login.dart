@@ -42,11 +42,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.blueGrey[50],
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+
+              SizedBox(height: 50),
 
               const Icon(Icons.shield_outlined, size: 80, color: Colors.deepPurple),
               const SizedBox(height: 24),
