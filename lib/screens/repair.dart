@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../device_info_service.dart';
 
 const List<Map<String, dynamic>> _surveyQuestions = [
@@ -43,12 +44,125 @@ class _RepairScreenState extends State<RepairScreen> {
   // Device info variables
   String _deviceName = 'Your Device';
 
+  // brand loaded from shared prefs - apple shows ios tutorial, everything else shows android
+  String _phoneBrand = 'Other';
+
   // Category variables
   String _selectedCategory = 'All';
   final List<String> _categories = ['All', 'Battery', 'Storage', 'Overheating'];
 
+  
+
+  // ios storage tutorial
+  // images sourced from wikihow.com/Free-Up-Space-on-Your-iPhone (CC BY-NC-SA 3.0)
+  final Map<String, dynamic> _iosStorageTutorial = {
+    'title': 'Free up Storage Space',
+    'description': 'Free space on your iPhone by using your iPhone\'s Storage Menu',
+    'duration': '5min',
+    'category': 'Storage',
+    'tools': [],
+    'warning': '',
+    'steps': [
+      {
+        'title': 'Open Settings',
+        'description': 'To get started, tap the Settings icon on your Home Screen or in your App Library.',
+        'imageAsset': 'assets/ios/Step-1.jpg',
+      },
+      {
+        'title': 'Tap General',
+        'description': 'You\'ll find this in the third group of options in the Settings menu.',
+        'imageAsset': 'assets/ios/Step-2.jpg',
+      },
+      {
+        'title': 'Tap iPhone Storage',
+        'description': 'This menu shows a breakdown of storage usage by category (Apps, Photos, Messages, etc.).',
+        'imageAsset': 'assets/ios/Step-3.jpg',
+      },
+      {
+        'title': 'Review Recommendations',
+        'description': 'Check the Recommendations section at the top for quick wins like Offload Unused Apps or Review Large Attachments.',
+        'imageAsset': 'assets/ios/step-4.jpg',
+      },
+      {
+        'title': 'Audit App List',
+        'description': 'Scroll down to see apps sorted by size. Tap any app to offload or delete it and reclaim space instantly.',
+        'imageAsset': 'assets/ios/step-5.jpg',
+      },
+    ],
+  };
+
+  // android storage tutorial
+  // images sourced from wikihow.com/Increase-Internal-Memory-of-Any-Android-Phone (CC BY-NC-SA 3.0)
+  final Map<String, dynamic> _androidStorageTutorial = {
+    'title': 'Archiving Unused Apps',
+    'description': 'Free up space and optimise performance on your Android device by archiving unused apps',
+    'duration': '5min',
+    'category': 'Storage',
+    'tools': [],
+    'warning': '',
+    'steps': [
+      {
+        'title': 'Open the Google Play Store',
+        'description': 'Tap the Play Store icon on your device to get started.',
+        'imageAsset': 'assets/android/step1.jpg',
+      },
+      {
+        'title': 'Tap Your Profile Icon',
+        'description': 'Tap your profile icon in the top-right corner of the Play Store.',
+        'imageAsset': 'assets/android/step2.jpg',
+      },
+      {
+        'title': 'Open Settings',
+        'description': 'Select Settings from the menu, then tap General.',
+        'imageAsset': 'assets/android/step3.jpg',
+      },
+      {
+        'title': 'Enable Auto-Archive',
+        'description': 'Toggle on "Automatically archive apps" to remove app binaries while keeping your data and documents.',
+        'imageAsset': 'assets/android/step4.jpg',
+      },
+      {
+        'title': 'Confirm Archiving',
+        'description': 'Your device will now automatically archive unused apps when storage is low, freeing up space without losing data.',
+        'imageAsset': 'assets/android/step5.jpeg',
+      },
+    ],
+  };
+
   // Tutorial variables
   final List<Map<String, dynamic>> _allTutorials = [
+    // Storage performance reduction
+{
+  'title': 'Storage Performance Reduction',
+  'subtitle': '',
+  'description': 'Clear cache, uninstall unused apps, move photos to cloud...',
+  'duration': '1min',
+  'category': 'Storage',
+  'tools': [],
+  'warning': '',
+  'steps': [
+    {
+      'title': 'Open Storage Settings',
+      'description':
+          'Go to Settings > Storage to see what is taking up space on your device.',
+    },
+    {
+      'title': 'Clear App Cache',
+      'description':
+          'Tap on individual apps and select "Clear Cache" to free up space without deleting data.',
+    },
+    {
+      'title': 'Delete Unused Apps',
+      'description':
+          'Remove apps you no longer use. Long-press an app icon and select Uninstall.',
+    },
+    {
+      'title': 'Move Photos to Cloud',
+      'description':
+          'Back up your photos to Google Photos or another cloud service, then delete local copies.',
+    },
+  ],
+},
     {
       // replace battery
       'title': 'Replace Battery',
@@ -91,6 +205,7 @@ class _RepairScreenState extends State<RepairScreen> {
         },
       ],
     },
+  
 
     // Fix overheating
     {
@@ -129,38 +244,6 @@ class _RepairScreenState extends State<RepairScreen> {
       ],
     },
 
-    // Storage performance reduction
-    {
-      'title': 'Storage Performance Reduction',
-      'description': 'Clear cache, uninstall unused apps, move photos to cloud...',
-      'duration': '1min',
-      'category': 'Storage',
-      'tools': [],
-      'warning': '',
-      'steps': [
-        {
-          'title': 'Open Storage Settings',
-          'description':
-              'Go to Settings > Storage to see what is taking up space on your device.',
-        },
-        {
-          'title': 'Clear App Cache',
-          'description':
-              'Tap on individual apps and select "Clear Cache" to free up space without deleting data.',
-        },
-        {
-          'title': 'Delete Unused Apps',
-          'description':
-              'Remove apps you no longer use. Long-press an app icon and select Uninstall.',
-        },
-        {
-          'title': 'Move Photos to Cloud',
-          'description':
-              'Back up your photos to Google Photos or another cloud service, then delete local copies.',
-        },
-      ],
-    },
-
     // Improve battery life
     {
       'title': 'Improve Battery Life',
@@ -195,15 +278,25 @@ class _RepairScreenState extends State<RepairScreen> {
 
   ];
 
+  // returns the full tutorial list including the correct storage tutorial for the brand
+  List<Map<String, dynamic>> get _tutorialsForBrand {
+    final storageGuide = _phoneBrand.toLowerCase() == 'apple'
+        ? _iosStorageTutorial
+        : _androidStorageTutorial;
+
+    return [..._allTutorials, storageGuide];
+  }
+
   List<Map<String, dynamic>> get _sortedTutorials {
-    if (_selectedCategory == 'All') return _allTutorials;
-    return _allTutorials.where((t) => t['category'] == _selectedCategory).toList();
+    if (_selectedCategory == 'All') return _tutorialsForBrand;
+    return _tutorialsForBrand.where((t) => t['category'] == _selectedCategory).toList();
   }
 
   @override
   void initState() {
     super.initState();
     _loadDeviceName();
+    _loadBrand();
   }
 
   // calls the service to get device name
@@ -211,6 +304,14 @@ class _RepairScreenState extends State<RepairScreen> {
     final data = await DeviceInfoService.getDeviceDetails();
     setState(() {
       _deviceName = data['name'] ?? 'Your Device';
+    });
+  }
+
+  // loads saved brand - if apple show ios tutorial else show android tutorial
+  Future<void> _loadBrand() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _phoneBrand = prefs.getString('phone_brand') ?? 'Other';
     });
   }
 
@@ -369,7 +470,7 @@ class _RepairScreenState extends State<RepairScreen> {
                         ),
                       ),
                     ),
-                    
+
                     //padding
                     const SizedBox(height: 24),
 
@@ -459,6 +560,7 @@ class _RepairScreenState extends State<RepairScreen> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
+
                                       //padding
                                       const SizedBox(height: 4),
                                       Text(
@@ -628,7 +730,7 @@ class _TroubleshootingSurveyDialogState extends State<_TroubleshootingSurveyDial
   }
 }
 
-// tutorial preview 
+// tutorial preview
 class _TutorialPreviewDialog extends StatelessWidget {
   final Map<String, dynamic> tutorial;
   final VoidCallback onStart;
@@ -644,7 +746,12 @@ class _TutorialPreviewDialog extends StatelessWidget {
     final String warning = tutorial['warning'];
 
     return AlertDialog(
-      title: Text(tutorial['title']),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(tutorial['title']),
+        ],
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -770,6 +877,10 @@ class _TutorialStepsDialogState extends State<_TutorialStepsDialog> {
     final int total = steps.length;
     final bool isLast = _currentStep == total - 1;
 
+    // check if this step has a local asset image
+    final String? imageAsset = step['imageAsset'] as String?;
+    final bool hasImage = imageAsset != null && imageAsset.isNotEmpty;
+
     return AlertDialog(
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -786,42 +897,68 @@ class _TutorialStepsDialogState extends State<_TutorialStepsDialog> {
           ),
         ],
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
 
-          // tutorial icons
-          Container(
-            height: 120,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
+            // shows local asset image if available, falls back to icon placeholder
+            if (hasImage)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  imageAsset,
+                  height: 180,
+                  width: 280,
+                  fit: BoxFit.cover,
+                ),
+              )
+
+            else
+              // tutorial icon placeholder
+              Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Icon(Icons.smartphone, size: 60, color: Colors.grey),
+                ),
+              ),
+
+            //padding
+            const SizedBox(height: 16),
+
+            Text(
+              step['title'],
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
-            child: const Center(
-              child: Icon(Icons.smartphone, size: 60, color: Colors.grey),
+
+            //padding
+            const SizedBox(height: 8),
+
+            Text(
+              step['description'],
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              textAlign: TextAlign.center,
             ),
-          ),
 
-          //padding
-          const SizedBox(height: 16),
+            //padding
+            const SizedBox(height: 12),
 
-          Text(
-            step['title'],
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
+            // wikihow attribution shown only on steps that have images
+            if (hasImage)
+              const Text(
+                'Tutorial images © wikiHow (wikihow.com) · CC BY-NC-SA 3.0',
+                style: TextStyle(fontSize: 10, color: Colors.black38),
+                textAlign: TextAlign.center,
+              ),
 
-          //padding
-          const SizedBox(height: 8),
-
-          Text(
-            step['description'],
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
-            textAlign: TextAlign.center,
-          ),
-
-        ],
+          ],
+        ),
       ),
       actions: [
 

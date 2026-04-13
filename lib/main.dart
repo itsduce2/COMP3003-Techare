@@ -3,6 +3,7 @@ import 'package:workmanager/workmanager.dart';
 import 'navigation.dart';
 import 'notification_service.dart';
 import 'notifications.dart';
+import 'screens/test.dart';
 //import 'battery_cycles_animation.dart';
 
 // called by WorkManager in the background
@@ -49,6 +50,7 @@ class MyApp extends StatelessWidget {
       //Screens
       home: const BottomNavigation(),
       //home: BatteryCyclesAnimation(onContinue: () {}),
+      //home: const TestScreen(),
     );
   }
 }

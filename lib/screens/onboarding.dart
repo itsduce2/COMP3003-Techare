@@ -17,9 +17,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _selYears = 0;
   int _selMonths = 0;
   double _phoneCycles = 0.5;
+  String _selBrand = 'Other';
   final TextEditingController _name = TextEditingController();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+
+  // available brands for the brand picker
+  final List<String> _brands = ['Apple', 'Samsung', 'Google', 'Other'];
 
   // Feature slides
   final List<Map<String, dynamic>> _features = [
@@ -55,6 +59,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setString('phone_age', '${_selYears}y ${_selMonths}m');
     await prefs.setString('phone_age_set_date', DateTime.now().toIso8601String());
     await prefs.setString('charging_habit', _phoneCycles.toStringAsFixed(1));
+    await prefs.setString('phone_brand', _selBrand);
 
     if (!mounted) return;
     //Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
@@ -73,6 +78,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           _welcomeScreen(),
           ..._features.map((f) => _featSlides(f)).toList(),
           _phoneAgeScreen(),
+          _brandScreen(),
           BatteryCyclesAnimation(onContinue: _nextPage),
           _cyclesScreen(),
           _signUpScreen(),
@@ -178,30 +184,52 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  // Brand picker screen - used to apply the correct degradation profile
+  Widget _brandScreen() {
+    return _onboardingWrapper(
+      title: "What brand is your phone?",
+      subtitle: "This lets us apply the correct battery degradation profile for your device.",
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Brand", style: TextStyle(color: Colors.black54)),
+          const SizedBox(height: 8),
+          DropdownButton<String>(
+            value: _selBrand,
+            isExpanded: true,
+            items: _brands.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+            onChanged: (v) => setState(() => _selBrand = v!),
+          ),
+        ],
+      ),
+      onContinue: _nextPage,
+    );
+  }
+
   // Charging habits screen
- Widget _cyclesScreen() {
-  return _onboardingWrapper(
-    title: "How do you typically charge your phone?",
-    subtitle: "One charge cycle = 100% total battery used, even if topped up in smaller amounts.",
-    child: Column(
-      children: [
-        Text(
-          "${_phoneCycles.toStringAsFixed(1)} cycles per day",
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-        ),
-        Slider(
-          value: _phoneCycles,
-          min: 0.5,
-          max: 5.0,
-          divisions: 9,
-          activeColor: Colors.deepPurple,
-          onChanged: (v) => setState(() => _phoneCycles = double.parse(v.toStringAsFixed(1))),
-        ),
-      ],
-    ),
-    onContinue: _nextPage,
-  );
-}
+  Widget _cyclesScreen() {
+    return _onboardingWrapper(
+      title: "How do you typically charge your phone?",
+      subtitle: "One charge cycle = 100% total battery used, even if topped up in smaller amounts.",
+      child: Column(
+        children: [
+          Text(
+            "${_phoneCycles.toStringAsFixed(1)} cycles per day",
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+          ),
+          Slider(
+            value: _phoneCycles,
+            min: 0.5,
+            max: 5.0,
+            divisions: 9,
+            activeColor: Colors.deepPurple,
+            onChanged: (v) => setState(() => _phoneCycles = double.parse(v.toStringAsFixed(1))),
+          ),
+        ],
+      ),
+      onContinue: _nextPage,
+    );
+  }
 
   // Sign up screen
   Widget _signUpScreen() {
@@ -233,7 +261,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // Reusable component
   void _prevPage() {
     _pageController.previousPage(
-      duration: const Duration(milliseconds: 300), 
+      duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
   }

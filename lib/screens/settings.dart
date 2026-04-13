@@ -15,6 +15,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Device Profile state
   String _phoneAge = '';
   String _chargingHabit = '';
+  String _phoneBrand = '';
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       //update age accounting for elapsed time
       _phoneAge = _addMonths(age, setDate);
       _chargingHabit = prefs.getString('charging_habit') ?? '';
+      _phoneBrand = prefs.getString('phone_brand') ?? '';
     });
   }
 
@@ -175,7 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'You complete one charge cycle when you’ve used (discharged) an amount that represents 100% of your battery’s capacity BUT not necessarily all from one charge. ',
+                'You complete one charge cycle when you\'ve used (discharged) an amount that represents 100% of your battery\'s capacity BUT not necessarily all from one charge. ',
                 style: TextStyle(fontSize: 13, color: Colors.black54),
               ),
               const SizedBox(height: 16),
@@ -220,6 +222,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: const Text('Save', style: TextStyle(color: Colors.deepPurple)),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  // Brand selection dialog
+  void _showBrandDialog() {
+    final List<String> brands = ['Apple', 'Samsung', 'Google', 'Other'];
+    String selBrand = _phoneBrand.isEmpty ? 'Other' : _phoneBrand;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Phone Brand'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Brand', style: TextStyle(color: Colors.black54)),
+                  const SizedBox(height: 8),
+                  DropdownButton<String>(
+                    value: selBrand,
+                    isExpanded: true,
+                    items: brands.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                    onChanged: (v) => setDialogState(() => selBrand = v!),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final nav = Navigator.of(context);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('phone_brand', selBrand);
+                    if (!mounted) return;
+                    setState(() {
+                      _phoneBrand = selBrand;
+                    });
+                    nav.pop();
+                  },
+                  child: const Text('Save', style: TextStyle(color: Colors.deepPurple)),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -338,6 +391,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   children: [
                     ListTile(
+                      title: const Text('Phone Brand', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      subtitle: Text(
+                        _phoneBrand.isEmpty ? 'Not set' : _phoneBrand,
+                        style: const TextStyle(fontSize: 14, color: Colors.black54),
+                      ),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                      onTap: _showBrandDialog,
+                    ),
+
+                    const Divider(height: 1, color: Colors.black12),
+
+                    ListTile(
                       title: const Text('Phone Age', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       subtitle: Text(
                         _phoneAge.isEmpty ? 'Not set' : _phoneAge,
@@ -349,6 +414,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     const Divider(height: 1, color: Colors.black12),
 
+ 
                     ListTile(
                       title: const Text('Charging Habits', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       subtitle: Text(
