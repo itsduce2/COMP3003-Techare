@@ -92,7 +92,7 @@ class _RepairScreenState extends State<RepairScreen> {
   };
 
   // android storage tutorial
-  // images sourced from wikihow.com/Increase-Internal-Memory-of-Any-Android-Phone (CC BY-NC-SA 3.0)
+  // images sourced from wikihow.com 
   final Map<String, dynamic> _androidStorageTutorial = {
     'title': 'Archiving Unused Apps',
     'description': 'Free up space and optimise performance on your Android device by archiving unused apps',
@@ -132,37 +132,37 @@ class _RepairScreenState extends State<RepairScreen> {
   // Tutorial variables
   final List<Map<String, dynamic>> _allTutorials = [
     // Storage performance reduction
-{
-  'title': 'Storage Performance Reduction',
-  'subtitle': '',
-  'description': 'Clear cache, uninstall unused apps, move photos to cloud...',
-  'duration': '1min',
-  'category': 'Storage',
-  'tools': [],
-  'warning': '',
-  'steps': [
     {
-      'title': 'Open Storage Settings',
-      'description':
-          'Go to Settings > Storage to see what is taking up space on your device.',
+      'title': 'Storage Performance Reduction',
+      'description': 'Clear cache, uninstall unused apps, move photos to cloud...',
+      'duration': '1min',
+      'category': 'Storage',
+      'tools': [],
+      'warning': '',
+      'steps': [
+        {
+          'title': 'Open Storage Settings',
+          'description':
+              'Go to Settings > Storage to see what is taking up space on your device.',
+        },
+        {
+          'title': 'Clear App Cache',
+          'description':
+              'Tap on individual apps and select "Clear Cache" to free up space without deleting data.',
+        },
+        {
+          'title': 'Delete Unused Apps',
+          'description':
+              'Remove apps you no longer use. Long-press an app icon and select Uninstall.',
+        },
+        {
+          'title': 'Move Photos to Cloud',
+          'description':
+              'Back up your photos to Google Photos or another cloud service, then delete local copies.',
+        },
+      ],
     },
-    {
-      'title': 'Clear App Cache',
-      'description':
-          'Tap on individual apps and select "Clear Cache" to free up space without deleting data.',
-    },
-    {
-      'title': 'Delete Unused Apps',
-      'description':
-          'Remove apps you no longer use. Long-press an app icon and select Uninstall.',
-    },
-    {
-      'title': 'Move Photos to Cloud',
-      'description':
-          'Back up your photos to Google Photos or another cloud service, then delete local copies.',
-    },
-  ],
-},
+
     {
       // replace battery
       'title': 'Replace Battery',
@@ -777,7 +777,7 @@ class _TutorialPreviewDialog extends StatelessWidget {
               InkWell(
                 onTap: () {},
                 child: const Text(
-                  'Buy spare parts ↗',
+                  'Buy spare parts',
                   style: TextStyle(
                     color: Colors.deepPurpleAccent,
                     fontSize: 13,
@@ -975,6 +975,8 @@ class _TutorialStepsDialogState extends State<_TutorialStepsDialog> {
               setState(() => _currentStep++);
             } else {
               Navigator.pop(context);
+
+              //tutorial complete snackbar
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('${widget.tutorial['title']} tutorial complete!'),
