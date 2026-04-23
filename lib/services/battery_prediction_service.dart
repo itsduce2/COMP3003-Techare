@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'login_service.dart';
 
 // holds the result of a battery prediction run
 class BatteryPredictionResult {
@@ -35,12 +36,46 @@ class BatteryPredictionService {
   // intercept set to 1.0 so cycle 0 = 100%
   static const double _nasaIntercept = 1.0;
 
-  // main prediction method - reads phone_age and charging_habit from SharedPreferences
+ //target cycle based on brand data and release year, default as 800 to meet EU legislation baseline for smart devices
+  static int _getTargetCycles(String brand, int releaseYear) {
+    switch (brand.toLowerCase()) {
+      case 'apple':
+        // iphone 15+ 2023+ at 1,000 cycles, iphone 14 and earlier at 500
+        return releaseYear >= 2023 ? 1000 : 500;
+      case 'google':
+        // pixel 8a+ (2024+) at 1,000 cycles to 80%
+        // pixel 3-8 pro (2018-2023) at 800 cycles
+        // else no official data, falls back to li-ion baseline
+        if (releaseYear >= 2024) return 1000;
+        if (releaseYear >= 2018) return 800;
+        return 500;
+      case 'samsung':
+        // galaxy s21 era (2021+) rated at 2,000 cycles per eu energy label data
+        // pre-s21: falls back to general li-ion baseline
+        return releaseYear >= 2021 ? 2000 : 500;
+      default:
+        // eu regulation minimum baseline
+        return 800;
+    }
+  }
+
+  // scales the nasa slope to the device's rated cycle life
+  // formula: slope_adjusted = nasa_slope * (500 / target_cycles)
+  static double _adjustedSlope(int targetCycles) {
+    return _nasaSlope * (500 / targetCycles);
+  }
+
+  // main prediction method - reads namespaced keys for the current user
   static Future<BatteryPredictionResult> predict() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final phoneAge = prefs.getString('phone_age') ?? '';
-    final chargingHabit = prefs.getString('charging_habit') ?? '';
+    final phoneAgeKey      = await LoginService.key('phone_age');
+    final chargingHabitKey = await LoginService.key('charging_habit');
+    final brandKey         = await LoginService.key('phone_brand');
+
+    final phoneAge      = prefs.getString(phoneAgeKey)      ?? '';
+    final chargingHabit = prefs.getString(chargingHabitKey) ?? '';
+    final brand         = prefs.getString(brandKey)         ?? 'Other';
 
     // check both settings are set
     if (phoneAge.isEmpty || chargingHabit.isEmpty) {
@@ -76,9 +111,12 @@ class BatteryPredictionService {
     }
 
     // convert age to total days
-    final years = int.parse(ageMatch.group(1)!);
-    final months = int.parse(ageMatch.group(2)!);
+    final years     = int.parse(ageMatch.group(1)!);
+    final months    = int.parse(ageMatch.group(2)!);
     final totalDays = (years * 365) + (months * 30);
+
+    // derive release year from phone age so we don't need a separate field
+    final releaseYear = DateTime.now().year - years;
 
     // parse cycles per day from charging habit
     final cyclesPerDay = double.tryParse(chargingHabit) ?? 1.0;
@@ -86,8 +124,12 @@ class BatteryPredictionService {
     // estimate total cycles so far
     final estimatedCycles = (totalDays * cyclesPerDay).round();
 
+    // get target cycles and adjusted slope for this device
+    final targetCycles = _getTargetCycles(brand, releaseYear);
+    final slope        = _adjustedSlope(targetCycles);
+
     // calculate current expected capacity
-    final currentCapacity = _predictCapacity(estimatedCycles);
+    final currentCapacity = _predictCapacity(estimatedCycles, slope);
 
     // project forward 1, 3, 6 and 12 months
     final futureCycles1  = estimatedCycles + (30  * cyclesPerDay).round();
@@ -96,10 +138,10 @@ class BatteryPredictionService {
     final futureCycles12 = estimatedCycles + (365 * cyclesPerDay).round();
 
     // calculated prediction using the linear regression equation
-    final pred1  = _predictCapacity(futureCycles1);
-    final pred3  = _predictCapacity(futureCycles3);
-    final pred6  = _predictCapacity(futureCycles6);
-    final pred12 = _predictCapacity(futureCycles12);
+    final pred1  = _predictCapacity(futureCycles1,  slope);
+    final pred3  = _predictCapacity(futureCycles3,  slope);
+    final pred6  = _predictCapacity(futureCycles6,  slope);
+    final pred12 = _predictCapacity(futureCycles12, slope);
 
     return BatteryPredictionResult(
       canPredict: true,
@@ -110,7 +152,7 @@ class BatteryPredictionService {
       predicted6Months: pred6,
       predicted12Months: pred12,
       estimatedCycles: estimatedCycles,
-      confidenceLabel: _confidenceLabel(cyclesPerDay),
+      confidenceLabel: _confidenceLabel(brand),
       recommendation: _buildRecommendation(
         currentCapacity: currentCapacity,
         pred12: pred12,
@@ -119,15 +161,24 @@ class BatteryPredictionService {
   }
 
   // applies the linear regression equation and clamps to 0-100%
-  static double _predictCapacity(int cycles) {
-    return ((_nasaSlope * cycles + _nasaIntercept) * 100).clamp(0.0, 100.0);
+  static double _predictCapacity(int cycles, double slope) {
+    return ((slope * cycles + _nasaIntercept) * 100).clamp(0.0, 100.0);
   }
 
-  // confidence is medium if cycles per day is a round number
-  // high if user has entered cycles to a decimal
-  static String _confidenceLabel(double cyclesPerDay) {
-    if (cyclesPerDay == cyclesPerDay.roundToDouble()) return 'Medium';
-    return 'High';
+  // confidence reflects quality of manufacturer battery cycle data available
+  // high   = clean official tiers with no ambiguity (apple)
+  // medium = official data exists but varies across models within the same era (samsung, google)
+  // low    = unknown brand, falling back to eu ecodesign baseline estimate
+  static String _confidenceLabel(String brand) {
+    switch (brand.toLowerCase()) {
+      case 'apple':
+        return 'High';
+      case 'samsung':
+      case 'google':
+        return 'Medium';
+      default:
+        return 'Low';
+    }
   }
 
   // recommendation based on est* capacity

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:techare_application_comp3003/login_service.dart';
-import '../device_info_service.dart';
-import '../battery_service.dart';
-import '../storage_service.dart';
-import '../battery_prediction_service.dart';
+import '../widgets/header.dart';
+import 'package:techare_application_comp3003/services/login_service.dart';
+import '../services/device_info_service.dart';
+import '../services/battery_service.dart';
+import '../services/storage_service.dart';
+import '../services/battery_prediction_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/perdiction.dart';
 
@@ -39,6 +40,8 @@ class DiagnosticsScreenState extends State<DiagnosticsScreen> {
   bool _isPredicting = false;
   String _lastScanDate = 'Never';
 
+  String _userName = '';
+
   // Previous results list
   List<Map<String, String>> _previousResults = [];
 
@@ -56,10 +59,16 @@ class DiagnosticsScreenState extends State<DiagnosticsScreen> {
   // loads saved history and last scan date at the same time, then fetches fresh sensor data
   Future<void> _init() async {
     await Future.wait([
+      _loadUserName(),
       _loadLastScanDate(),
       _loadPreviousResults(),
     ]);
     await _initDashboard();
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await LoginService.currentUserName();
+    setState(() => _userName = name);
   }
 
   // loads the last scan date from storage
@@ -395,43 +404,9 @@ Navigator.push(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              // Header
-              Container(
-                color: Colors.white,
-                padding: const EdgeInsets.all(24.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Greeting column
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Hi, Amina 👋',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'Here are your diagnostics',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.deepPurple,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Icons
-                    Row(
-                      children: const [
-                        Icon(Icons.notifications_none, size: 28),
-                        SizedBox(width: 16),
-                        Icon(Icons.account_circle, size: 40),
-                      ],
-                    ),
-                  ],
-                ),
+              AppHeader(
+                userName: _userName,
+                subtitle: 'Here are your diagnostics',
               ),
 
               //padding

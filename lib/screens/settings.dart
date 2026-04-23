@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../widgets/header.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:techare_application_comp3003/screens/login.dart';
 import 'onboarding.dart';
-import '../login_service.dart';
+import '../services/login_service.dart';
+import '../services/notification_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,13 +14,14 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  // bool _notificationsEnabled = true;
+  bool _notificationsEnabled = true;
 
   // Device Profile state
   String _phoneAge = '';
-  String _chargingHabit = '';
+  String _cycles = '';
   String _phoneBrand = '';
   String _userName = '';
+  String _userEmail = '';
 
   @override
   void initState() {
@@ -28,21 +31,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadDeviceProfile() async {
-    final prefs      = await SharedPreferences.getInstance();
-    final ageKey     = await LoginService.key('phone_age');
-    final setDateKey = await LoginService.key('phone_age_set_date');
-    final habitKey   = await LoginService.key('charging_habit');
-    final brandKey   = await LoginService.key('phone_brand');
-    final name       = await LoginService.currentUserName();
+    final prefs = await SharedPreferences.getInstance();
+    final agePref = await LoginService.key('phone_age');
+    final setDatePref = await LoginService.key('phone_age_set_date');
+    final cycles = await LoginService.key('charging_habit');
+    final phoneBrand = await LoginService.key('phone_brand');
+    final name = await LoginService.currentUserName();
+    final email = await LoginService.currentUser() ?? '';
+    final notificationsEnabled = await NotificationService.isEnabled();
 
-    final age     = prefs.getString(ageKey)     ?? '';
-    final setDate = prefs.getString(setDateKey);
+    final age = prefs.getString(agePref)     ?? '';
+    final setDate = prefs.getString(setDatePref);
 
     setState(() {
-      _phoneAge      = _addMonths(age, setDate);
-      _chargingHabit = prefs.getString(habitKey) ?? '';
-      _phoneBrand    = prefs.getString(brandKey)  ?? '';
-      _userName      = name;
+      _phoneAge = _addMonths(age, setDate);
+      _cycles = prefs.getString(cycles) ?? '';
+      _phoneBrand = prefs.getString(phoneBrand)  ?? '';
+      _userName = name;
+      _userEmail = email;
+      _notificationsEnabled = notificationsEnabled;
     });
   }
 
@@ -65,7 +72,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     //work out how many calendar months have passed since then
     final now = DateTime.now();
     months += (now.year - from.year) * 12 + (now.month - from.month);
-
+    
     //carry overflow months into years
     if (months >= 12) {
       years  += months ~/ 12;
@@ -75,14 +82,137 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return '${years}y ${months}m';
   }
 
+  Future<void> _toggleNotifications(bool value) async {
+    await NotificationService.setEnabled(value);
+    if (!mounted) return;
+    setState(() => _notificationsEnabled = value);
+  }
+
+  // Account dialog - edit name and password
+  void _showAccountDialog() {
+    final nameController = TextEditingController(text: _userName);
+    final currentPassController = TextEditingController();
+    final newPassController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Account'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Name', style: TextStyle(color: Colors.black54, fontSize: 13)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Email', style: TextStyle(color: Colors.black54, fontSize: 13)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: TextEditingController(text: _userEmail),
+                  enabled: false,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text('Change Password', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 12),
+                const Text('Current Password', style: TextStyle(color: Colors.black54, fontSize: 13)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: currentPassController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text('New Password', style: TextStyle(color: Colors.black54, fontSize: 13)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: newPassController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final nav   = Navigator.of(context);
+                final prefs = await SharedPreferences.getInstance();
+
+                // save updated name
+                final newName = nameController.text.trim();
+                if (newName.isNotEmpty && newName != _userName) {
+                  final nameKey = LoginService.keyFor(_userEmail, 'name');
+                  await prefs.setString(nameKey, newName);
+                }
+
+                // update password if fields filled
+                final currentPass = currentPassController.text;
+                final newPass = newPassController.text.trim();
+                if (currentPass.isNotEmpty || newPass.isNotEmpty) {
+                  final userPassword = LoginService.keyFor(_userEmail, 'password');
+                  final storedPass = prefs.getString(userPassword) ?? '';
+                  if (currentPass != storedPass) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(nav.context).showSnackBar(
+                      const SnackBar(content: Text('Current password is incorrect.')),
+                    );
+                    return;
+                  }
+                  if (newPass.isEmpty) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(nav.context).showSnackBar(
+                      const SnackBar(content: Text('New password cannot be empty.')),
+                    );
+                    return;
+                  }
+                  await prefs.setString(userPassword, newPass);
+                }
+
+                if (!mounted) return;
+                setState(() {
+                  if (newName.isNotEmpty) _userName = newName;
+                });
+                nav.pop();
+              },
+              child: const Text('Save', style: TextStyle(color: Colors.deepPurple)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // Dialog for Phone Age selection
   void _showPhoneAgeDialog() {
     // Parse current display value back into years/months for the dropdowns
-    int selYears  = 0;
+    int selYears = 0;
     int selMonths = 0;
     final match = RegExp(r'(\d+)y (\d+)m').firstMatch(_phoneAge);
     if (match != null) {
-      selYears  = int.parse(match.group(1)!);
+      selYears = int.parse(match.group(1)!);
       selMonths = int.parse(match.group(2)!);
     }
 
@@ -142,16 +272,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    final nav        = Navigator.of(context);
-                    final saved      = '${selYears}y ${selMonths}m';
-                    final prefs      = await SharedPreferences.getInstance();
-                    final ageKey     = await LoginService.key('phone_age');
-                    final setDateKey = await LoginService.key('phone_age_set_date');
+                    final nav = Navigator.of(context);
+                    final saved = '${selYears}y ${selMonths}m';
+                    final prefs  = await SharedPreferences.getInstance();
+                    final agePref = await LoginService.key('phone_age');
+                    final setDatePref = await LoginService.key('phone_age_set_date');
                     // Only reset the set date if the value changed
-                    if (saved != prefs.getString(ageKey)) {
-                      await prefs.setString(setDateKey, DateTime.now().toIso8601String());
+                    if (saved != prefs.getString(agePref)) {
+                      await prefs.setString(setDatePref, DateTime.now().toIso8601String());
                     }
-                    await prefs.setString(ageKey, saved);
+                    await prefs.setString(agePref, saved);
                     if (!mounted) return;
                     setState(() {
                       _phoneAge = saved;
@@ -172,7 +302,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showChargingHabitDialog() {
     // Parse existing saved value back into cycles
     double selectedCycles = 0;
-    final existing = double.tryParse(_chargingHabit);
+    final existing = double.tryParse(_cycles);
     if (existing != null) selectedCycles = existing;
 
     final controller = TextEditingController(
@@ -220,14 +350,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             TextButton(
               onPressed: () async {
-                final nav      = Navigator.of(context);
-                final saved    = controller.text.trim();
-                final prefs    = await SharedPreferences.getInstance();
-                final habitKey = await LoginService.key('charging_habit');
-                await prefs.setString(habitKey, saved);
+                final nav = Navigator.of(context);
+                final saved = controller.text.trim();
+                final prefs = await SharedPreferences.getInstance();
+                final cycles = await LoginService.key('charging_habit');
+                await prefs.setString(cycles, saved);
                 if (!mounted) return;
                 setState(() {
-                  _chargingHabit = saved;
+                  _cycles = saved;
                 });
                 nav.pop();
               },
@@ -271,10 +401,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    final nav      = Navigator.of(context);
-                    final prefs    = await SharedPreferences.getInstance();
-                    final brandKey = await LoginService.key('phone_brand');
-                    await prefs.setString(brandKey, selBrand);
+                    final nav = Navigator.of(context);
+                    final prefs = await SharedPreferences.getInstance();
+                    final phoneBrand = await LoginService.key('phone_brand');
+                    await prefs.setString(phoneBrand, selBrand);
                     if (!mounted) return;
                     setState(() {
                       _phoneBrand = selBrand;
@@ -305,43 +435,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             
-            // Header
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(24.0), // Padding
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Greeting column
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hi, $_userName 👋',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        'Here are your settings',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.deepPurple,
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Icons
-                  Row(
-                    children: const [
-                      Icon(Icons.notifications_none, size: 28),
-                      SizedBox(width: 16),
-                      Icon(Icons.account_circle, size: 40),
-                    ],
-                  ),
-                ],
-              ),
+            AppHeader(
+              userName: _userName,
+              subtitle: 'Here are your settings',
             ),
 
               //padding
@@ -365,10 +461,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: Text('Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       subtitle: Text('Name, Email, Password', style: TextStyle(fontSize: 14, color: Colors.black54)),
                       trailing: Icon(Icons.chevron_right, color: Colors.grey),
-                      onTap: () {
-                        // placeholder
-                      },
-                      
+                      onTap: _showAccountDialog,
                     ),
 
                     Divider(height: 1, color: Colors.black12),
@@ -427,7 +520,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ListTile(
                       title: const Text('Charging Habits', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       subtitle: Text(
-                        _chargingHabit.isEmpty ? 'Not set' : '$_chargingHabit cycles per day',
+                        _cycles.isEmpty ? 'Not set' : '$_cycles cycles per day',
                         style: const TextStyle(fontSize: 14, color: Colors.black54),
                       ),
                       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
@@ -441,48 +534,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
             //padding
             const SizedBox(height: 24),
 
-            // Notifications section
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            //   child: Container(
-            //     decoration: BoxDecoration(
-            //       color: Colors.white,
-            //       borderRadius: BorderRadius.circular(12),
-            //       border: Border.all(color: Colors.grey.shade300),
-            //     ),
-            //     child: Column(
-            //       children: [
-            //         ListTile(
-            //           title: const Text('Push Notifications', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            //           trailing: Switch(
-            //             value: _notificationsEnabled,
-            //             onChanged: (bool value) {
-            //               setState(() {
-            //                 _notificationsEnabled = value;
-            //               });
-            //             },
-            //             activeThumbColor: Colors.deepPurple,
-            //           ),
-            //           onTap: () {
-            //             setState(() {
-            //               _notificationsEnabled = !_notificationsEnabled;
-            //             });
-            //           },
-            //         ),
-            //         const Divider(height: 1, color: Colors.black12),
-            //         ListTile(
-            //           title: const Text('Manage Notifications', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            //           subtitle: const Text('Default Settings', style: TextStyle(fontSize: 14, color: Colors.black54)),
-            //           trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-            //           onTap: () {
-            //             // Placeholder
-            //           },
-            //         ),
-            //
-            //       ],
-            //     ),
-            //   ),
-            // ),  
+            //Notifications section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: const Text('Push Notifications', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      trailing: Switch(
+                        value: _notificationsEnabled,
+                        onChanged: _toggleNotifications,
+                        activeThumbColor: Colors.deepPurple,
+                      ),
+                      onTap: () => _toggleNotifications(!_notificationsEnabled),
+                    ),
+                  ],
+                ),
+              ),
+            ),  
           
              //padding
               const SizedBox(height: 24),

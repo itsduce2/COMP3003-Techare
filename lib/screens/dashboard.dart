@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../device_info_service.dart';
-import '../battery_service.dart';
-import '../storage_service.dart';
+import '../widgets/header.dart';
+import '../services/device_info_service.dart';
+import '../services/battery_service.dart';
+import '../services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../login_service.dart';
+import '../services/login_service.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -33,22 +34,29 @@ class _DashboardState extends State<Dashboard> {
   String _healthMessage = 'Loading...'; 
   Color _statusColor = Colors.white;
 
+  String _userName = '';
+
   // Diagnostic variables
-  bool _isScanning = false;          
+  bool _isScanning = false;
   String _lastScanDate = 'Never';
 
 
   
 
-  //calls service to get device info 
   @override
   void initState() {
     super.initState();
+    _loadUserName();
     _loadDeviceData();
     _loadBatteryData();
     _loadStorageData();
     _loadLastScanDate();
     _initDashboard();
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await LoginService.currentUserName();
+    setState(() => _userName = name);
   }
 
   Future<void> _loadLastScanDate() async {
@@ -172,43 +180,9 @@ class _DashboardState extends State<Dashboard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             
-            // Header
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(24.0), // Padding
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Greeting column
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Hi, Amina 👋',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Welcome to Techare',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.deepPurple,
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Icons
-                  Row(
-                    children: const [
-                      Icon(Icons.notifications_none, size: 28),
-                      SizedBox(width: 16),
-                      Icon(Icons.account_circle, size: 40),
-                    ],
-                  ),
-                ],
-              ),
+            AppHeader(
+              userName: _userName,
+              subtitle: 'Welcome to Techare',
             ),
          
             const SizedBox(height: 24),

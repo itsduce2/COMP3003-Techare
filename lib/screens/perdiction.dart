@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../battery_prediction_service.dart';
-import '../battery_cycles_animation.dart';
+import '../services/battery_prediction_service.dart';
+import '../widgets/animations/battery_cycles_animation.dart';
 
 class Prediction extends StatefulWidget {
   final BatteryPredictionResult result;
@@ -180,12 +180,27 @@ class _PredictionState extends State<Prediction> {
           //padding
           const SizedBox(height: 16),
 
-          // //cycle count and confidence label
-          // Text(
-          //   'Based on ~${widget.result.estimatedCycles} estimated charge cycles · Confidence: ${widget.result.confidenceLabel}',
-          //   style: const TextStyle(fontSize: 13, color: Colors.black38),
-          //   textAlign: TextAlign.center,
-          // ),
+          //cycle count and confidence label
+          Text.rich(
+            TextSpan(
+              style: const TextStyle(fontSize: 13, color: Colors.black38),
+              children: [
+                TextSpan(text: 'Based on ~${widget.result.estimatedCycles} estimated charge cycles\n'),
+                TextSpan(
+                  text: 'Confidence: ${widget.result.confidenceLabel}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: switch (widget.result.confidenceLabel) {
+                      'High'   => Colors.green,
+                      'Medium' => Colors.orange,
+                      _        => Colors.red,
+                    },
+                  ),
+                ),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
 
           //padding
           const SizedBox(height: 8),

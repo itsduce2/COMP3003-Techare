@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:techare_application_comp3003/battery_cycles_animation.dart';
+import 'package:techare_application_comp3003/widgets/animations/battery_cycles_animation.dart';
 import 'login.dart';
-import '../login_service.dart';
-import '../navigation.dart';
+import '../services/login_service.dart';
+import '../navigation/navigation.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -113,6 +113,7 @@ Future<void> _completeOnboarding() async {
           BatteryCyclesAnimation(onContinue: _nextPage),
           _cyclesScreen(),
           _signUpScreen(),
+          _privacyScreen(),
         ],
       ),
     );
@@ -280,8 +281,8 @@ Future<void> _completeOnboarding() async {
           _textFieldInput(_password, "Password", Icons.lock_outline, obscure: true),
         ],
       ),
-      onContinue: _completeOnboarding,
-      buttonText: "Create Account",
+      onContinue: _nextPage,
+      buttonText: "Continue",
       additionalChildren: [
         Center(
           child: TextButton(
@@ -294,6 +295,38 @@ Future<void> _completeOnboarding() async {
           ),
         )
       ],
+    );
+  }
+
+  // Privacy notice screen
+  Widget _privacyScreen() {
+    return _onboardingWrapper(
+      title: 'Your privacy matters',
+      subtitle: 'Before you continue, here\'s how Techare handles your data.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _PrivacyScreen(
+            icon: Icons.smartphone_outlined,
+            title: 'Device data stays on your device',
+            body: 'Battery level, temperature, and storage readings are used only for diagnostics and are never uploaded.',
+          ),
+          const SizedBox(height: 20),
+          _PrivacyScreen(
+            icon: Icons.person_outline,
+            title: 'Your account is stored locally',
+            body: 'Your name, email, and password are saved only on this device using encrypted local storage.',
+          ),
+          const SizedBox(height: 20),
+          _PrivacyScreen(
+            icon: Icons.analytics_outlined,
+            title: 'Prediction data',
+            body: 'Battery predictions are calculated locally using your phone age and charging habits. No data is sent to external servers.',
+          ),
+        ],
+      ),
+      onContinue: _completeOnboarding,
+      buttonText: 'Agree & Create Account',
     );
   }
 
@@ -393,6 +426,35 @@ Future<void> _completeOnboarding() async {
         prefixIcon: Icon(icon),
         border: const OutlineInputBorder(),
       ),
+    );
+  }
+}
+
+class _PrivacyScreen extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+
+  const _PrivacyScreen({required this.icon, required this.title, required this.body});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 28, color: Colors.deepPurple),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(body, style: const TextStyle(fontSize: 13, color: Colors.black54, height: 1.5)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:techare_application_comp3003/screens/login.dart';
 import 'package:workmanager/workmanager.dart';
-import 'navigation.dart';
-import 'notification_service.dart';
-import 'notifications.dart';
-//import 'screens/test.dart';
-import 'login_service.dart';
-import 'screens/login.dart';
-//import 'battery_cycles_animation.dart';
+import 'services/notification_service.dart';
+import 'services/notifications_manager.dart';
+import 'services/login_service.dart';
 
 // called by WorkManager in the background
 @pragma('vm:entry-point')
@@ -55,8 +51,6 @@ class MyApp extends StatelessWidget {
       ),
       //Screens
       home: const LoginScreen(),
-      //home: BatteryCyclesAnimation(onContinue: () {}),
-      //home: const TestScreen(),
     );
   }
 }

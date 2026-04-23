@@ -1,4 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
@@ -12,7 +14,6 @@ class NotificationService {
     const InitializationSettings initializationSettings =
         InitializationSettings(android: androidSettings);
 
-    // FIX: Added 'settings:' name here
     await _plugin.initialize(
       settings: initializationSettings, 
       onDidReceiveNotificationResponse: (NotificationResponse response) {
@@ -27,6 +28,31 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+  }
+
+  static const String _prefKey = 'notifications_enabled';
+  static const String _taskID = 'techare_background_check';
+  static const String _taskName = 'techareCheck';
+
+  // returns whether notifications are enabled (defaults true)
+  static Future<bool> isEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_prefKey) ?? true;
+  }
+
+  // enables or disables background notifications and persists the choice
+  static Future<void> setEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_prefKey, enabled);
+    if (enabled) {
+      await Workmanager().registerPeriodicTask(
+        _taskID,
+        _taskName,
+        frequency: const Duration(hours: 24),
+      );
+    } else {
+      await Workmanager().cancelByUniqueName(_taskID);
+    }
   }
 
   // shows a notification with a given id, title and body

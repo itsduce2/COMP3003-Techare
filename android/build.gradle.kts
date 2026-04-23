@@ -18,12 +18,7 @@ subprojects {
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
 
-// --------------------------------------------------------
-// THE JVM TOOLCHAIN FIX
-// This forces all plugins to sync Kotlin and Java to 17
-// --------------------------------------------------------
 subprojects {
-    // 1. Force the JVM Toolchain for all Kotlin plugins
     pluginManager.withPlugin("org.jetbrains.kotlin.android") {
         val kotlin = extensions.getByName("kotlin") as org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
         kotlin.jvmToolchain(17)
@@ -47,7 +42,6 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_17.toString()
     }
 }
-// --------------------------------------------------------
 
 subprojects {
     project.evaluationDependsOn(":app")
